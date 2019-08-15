@@ -564,7 +564,7 @@ a.back-to-top:hover, a.back-to-top:focus {
   /*background: url(../img/hero-area2.jpg) no-repeat;*/
   /*background: url(../img/hero-area2b.jpg) no-repeat;*/
   background-size: cover;
-  color: #fff;
+  color: #323232  ;
   padding: 150px 0;
   overflow: hidden;
   position: relative;
@@ -727,7 +727,7 @@ a.back-to-top:hover, a.back-to-top:focus {
 .countdown .time-count .time-entry span {
   font-size: 45px;
   font-weight: 700;
-  color: #fff;
+  color: #323232;
   font-family: 'Montserrat', sans-serif;
   display: block;
   width: 100%;

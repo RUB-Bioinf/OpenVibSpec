@@ -32,7 +32,7 @@ if (empty($_POST["message"])) {
 }
 
 
-$EmailTo = "arne.raulf@rub.de";
+$EmailTo = "arne.raulf@ruhr-uni-bochum.de";
 $Subject = "OpenVibSpec";
 
 // prepare email body text
