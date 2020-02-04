@@ -1,0 +1,23 @@
+# Build files
+build
+dist
+*.egg-info/*
+*.so
+*.la
+*.o
+*.py[doc]
+MANIFEST
+
+# Cython generated files
+__pycache__
+*.pyc
+
+# Editor files
+.vscode/
+.idea
+.idea/*
+*~
+.project
+.pydevproject
+.settings/*
+.DS_Store
