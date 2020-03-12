@@ -12,8 +12,11 @@ import numpy as np
 import sklearn
 import os
 import pickle
+from pathlib import Path
 import matplotlib.pyplot as plt
 # python 2.7 from sklearn.cross_validation import train_test_split 
+import sys
+import openvibspec.models
 from sklearn.model_selection import train_test_split
 plt.style.use('ggplot')
 ###########################################
@@ -26,10 +29,10 @@ plt.style.use('ggplot')
 #from keras.callbacks import ModelCheckpoint
 ###########################################
 
-import openvibspec.models
-MODELPATH = os.path.dirname(openvibspec.models.__file__)
 
 
+
+MODELPATH = Path('openvibspec/models').absolute()
 
 def randomforest_train(x,y,n_samples=1000, n_features=4,
                            n_informative=2, n_redundant=0,

@@ -12,7 +12,7 @@ from . import io_ftir
 # from . import initializations
 # from . import metrics
 from . import ml_ftir
-# from . import objectives
+from . import preprocessing
 # from . import optimizers
 # from . import regularizers
 ################################
