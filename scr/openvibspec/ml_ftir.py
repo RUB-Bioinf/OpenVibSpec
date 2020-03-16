@@ -189,15 +189,14 @@ class DeepLearn:
 
 		if classify == True:
 			
-			json_file = open(os.path.join(MODELPATH, 'model_weights_classification.json'), 'r')
-		
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 			loaded_model_json = json_file.read()
 			loaded_model = model_from_json(loaded_model_json)
 			
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_classification.best.hdf5"))
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
@@ -213,15 +212,15 @@ class DeepLearn:
 			#	
 			####################################################################################################x
 
-			json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
-		
+			#json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 			loaded_model_json = json_file.read()
 			loaded_model = model_from_json(loaded_model_json)
 			
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_regression.best.hdf5"))
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
