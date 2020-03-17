@@ -220,7 +220,7 @@ class DeepLearn:
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"model_weights_regression.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
@@ -233,6 +233,139 @@ class DeepLearn:
 
 
 
+	def transfer(self,x, y, classify=False, miecorr=False, trainable=False ):
+		"""
+ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
+
+		"""
+			
+		def pop_layer(model):
+			#
+			# basically only layers.pop()
+			#
+			if not model.outputs:
+		
+				raise Exception('Sequential model cannot be popped: model is empty.')
+		
+			model.layers.pop()
+		
+			if not model.layers:
+				model.outputs = []
+				
+				model.inbound_nodes = []
+				
+				model.outbound_nodes = []
+			else:
+				
+				model.layers[-1].outbound_nodes = []
+				
+				model.outputs = [model.layers[-1].output]
+			
+			model.built = False
+			
+
+
+		def add_layer(model):
+			return model.add(Dense(y.shape[1], activation='softmax', name='added_classes'))
+
+
+
+		def simple_val_of_data(x,y):
+			from sklearn.model_selection import train_test_split
+			from random import randrange
+			
+			seed = randrange(999)
+			
+			print('used random seed was', seed)
+			
+			x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.4,random_state=seed)
+			
+			return x_train, x_test, y_train, y_test
+
+			
+
+			#xtr, ytr, xte, yte = simple_val_of_data(x,y)
+			
+			#new_model =  pop_layer(model)
+			
+			#ready2train = add_layer(new_model)
+
+
+			#return loaded_model.predict(x), load_model
+		if classify == True:
+			
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+
+			loaded_model_json = json_file.read()
+
+			loaded_model = model_from_json(loaded_model_json)
+
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
+			
+			print("Loaded model from disk")
+			
+			model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+			xtr, ytr, xte, yte = simple_val_of_data(x,y)
+		
+			new_model =  pop_layer(model)
+		
+			ready2train = add_layer(new_model)
+			if trainable == False:
+				for layer in ready2train.layers:
+					layer.trainable = False
+			else: 
+				for layer in ready2train.layers:
+					layer.trainable = True
+		
+		if miecorr == True:
+			####################################################################################################
+			#	THIS MODEL NEEDS THE- FIRST 909 WVN. RANGE FROM 950-23XX WVN
+			#	
+			#	
+			#	
+			####################################################################################################x
+
+			#json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+			
+			loaded_model_json = json_file.read()
+			
+			loaded_model = model_from_json(loaded_model_json)
+			
+		
+			
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
+			
+			print("Loaded model from disk")
+			
+			model = loaded_model.compile(loss='mean_squared_error', optimizer='adam')
+
+		
+		
+			#return loaded_model.predict(x), load_model
+			#Freeze pretrained layers
+
+		#xtr, ytr, xte, yte = simple_val_of_data(x,y)
+		
+		#new_model =  pop_layer(model)
+		
+		#ready2train = add_layer(new_model)
+
+
+
+
+
+		
+		#if trainable == False:
+		#	for layer in model.layers:
+		#		layer.trainable = False
+		#else: 
+		#	for layer in model.layers:
+		#		layer.trainable = True
+
+
+
+		#print(loaded_model)
 
 
 
