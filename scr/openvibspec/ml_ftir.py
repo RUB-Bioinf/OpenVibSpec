@@ -234,6 +234,8 @@ class DeepLearn:
 
 
 	def transfer(self,x, y, classify=False, miecorr=False, trainable=False ):
+		import keras
+		from keras.models import model_from_json
 		"""
 ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
