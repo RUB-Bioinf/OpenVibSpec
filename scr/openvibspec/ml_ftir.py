@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 ###########################################
-# hier alle ein-/auslese routinen aus Matlab, R
-# und was noch kommen koennte
+# ML and AI Procedures for FTIR/Raman Spectroscopy
 #
 #
 #
@@ -12,27 +11,18 @@ import numpy as np
 import sklearn
 import os
 import pickle
-from pathlib import Path
 import matplotlib.pyplot as plt
 # python 2.7 from sklearn.cross_validation import train_test_split 
-import sys
-import openvibspec.models
 from sklearn.model_selection import train_test_split
 plt.style.use('ggplot')
 ###########################################
-#import keras
-#from keras.models import Sequential
-#from keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Input, GaussianNoise
-#from keras.models import Model
-#from keras.optimizers import RMSprop, Adam, SGD
-#from keras.models import model_from_json
-#from keras.callbacks import ModelCheckpoint
-###########################################
+import sys
+import openvibspec.models
 
-
-
-
+from pathlib import Path
 MODELPATH = Path('openvibspec/models').absolute()
+
+
 
 def randomforest_train(x,y,n_samples=1000, n_features=4,
                            n_informative=2, n_redundant=0,
@@ -41,6 +31,8 @@ def randomforest_train(x,y,n_samples=1000, n_features=4,
 	an dieser stelle if einbauen um None save model einzubauen
 
 	"""
+	#if n_arrays == 0:
+	#	raise ValueError("At least one array required as input")
 	from sklearn.ensemble import RandomForestClassifier
 	from sklearn.datasets import make_classification
 	
@@ -48,7 +40,8 @@ def randomforest_train(x,y,n_samples=1000, n_features=4,
 	
 	clf.fit(x, y)
 	#filename = 'finalized_model.sav'
-	
+	#MODELPATH = os.path.dirname(openvibspec.models.__file__)
+
 	filename = save_file_path
 	
 	pickle.dump(clf, open(filename, 'wb'))
@@ -88,8 +81,7 @@ def pca(x,pc):
 
 def pca_all(x,pc):
 	"""
-	Alles was an Daten durch sklearn ausgegeben wird auch mglich machen
-	- eventuell sogar plots einbauen und ausgeben
+	
 	"""
 	from sklearn.decomposition import PCA
 	
@@ -163,10 +155,12 @@ class DeepLearn:
 	FOR FURTHER INFORMATION PLEASE REFER TO Raulf et al.,2019
 
 	"""
-	
+
+		
 
 	def net(self,x,classify=False, miecorr=False, predict=False,train=False ,show=False):
 		import keras
+		from keras.layers import Input, Dense
 		from keras.optimizers import RMSprop, Adam, SGD
 		from keras.models import model_from_json
 		from keras.callbacks import ModelCheckpoint
@@ -190,7 +184,9 @@ class DeepLearn:
 		if classify == True:
 			
 			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+
 			loaded_model_json = json_file.read()
+
 			loaded_model = model_from_json(loaded_model_json)
 			
 			if show == True:
@@ -212,64 +208,118 @@ class DeepLearn:
 			#	
 			####################################################################################################x
 
-			#json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
 			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+			
 			loaded_model_json = json_file.read()
+
 			loaded_model = model_from_json(loaded_model_json)
 			
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"model_weights_regression.best.hdf5"))
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
 			loaded_model.compile(loss='mean_squared_error', optimizer='adam')
 
-			
+
 			
 		
 			return loaded_model.predict(x), load_model
 
-
-
-	def transfer(self,x, y, classify=False, miecorr=False, trainable=False ):
+	
+	def transfer(self,x, y, batch,train_epochs,add=[], classify=False, miecorr=False, trainable=False ):
 		import keras
+		from keras.models import Model
+		from keras.optimizers import RMSprop, Adam, SGD
 		from keras.models import model_from_json
+		from keras.callbacks import ModelCheckpoint
+		from keras.models import Sequential
 		"""
 ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 		"""
+	
+		def onehot(y):
+			import keras
+			from keras.utils import np_utils
+			c = np.max(y) + 1
+			y1hot = np_utils.to_categorical(y, num_classes=c)
+			return(y1hot)
+
+		def add_layer():
+			from keras.utils import np_utils
+			from keras.layers import Input, Dense 
+			from keras.models import Model
+			yoh =onehot(y)
+			sm = int(yoh.shape[1])
+			print(sm)
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 			
-		def pop_layer(model):
-			#
-			# basically only layers.pop()
-			#
-			if not model.outputs:
-		
-				raise Exception('Sequential model cannot be popped: model is empty.')
-		
-			model.layers.pop()
-		
-			if not model.layers:
-				model.outputs = []
-				
-				model.inbound_nodes = []
-				
-				model.outbound_nodes = []
-			else:
-				
-				model.layers[-1].outbound_nodes = []
-				
-				model.outputs = [model.layers[-1].output]
+			loaded_model_json = json_file.read()
 			
-			model.built = False
+			loaded_model = model_from_json(loaded_model_json)
 			
+			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
+		
+			
+			loaded_model.outputs = [loaded_model.layers[-2].output]
+		
+			
+			if trainable == False:
+				for layer in loaded_model.layers:
+					layer.trainable = False
+			else: 
+				for layer in loaded_model.layers:
+					layer.trainable = True
+			
+			preds = Dense(sm, name='newlast', activation='softmax')(loaded_model.output)
+		
+			model = Model(inputs=loaded_model.input, outputs=preds)
+			model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+			
+			history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
+			print(model.summary())
+
+			######################SAVING_MODEL###########################
+			model_json = model.to_json()
+			with open("model_ptMLP.json", "w") as json_file:
+				json_file.write(model_json)
+
+			model.save_weights("model_model_ptMLP.h5")
+			print("Saved model to disk")
 
 
-		def add_layer(model):
-			return model.add(Dense(y.shape[1], activation='softmax', name='added_classes'))
 
+
+
+			###########################PLOTTING##########################
+			history_dict = history.history
+			
+			history_dict.keys()
+			
+			a = np.array(history_dict['acc'])
+			
+			print(a.shape)
+			
+			l = np.array(history_dict['loss'])
+			
+			e = range(1, len(a) +1)
+			
+			plt.plot(e, a, 'bo',color='red', label='Acc Training')
+			
+			plt.plot(e, l, 'b', label='Loss Training')
+			
+			plt.xlabel('Epochs')
+			#plt.ylabel()
+			plt.legend()
+			
+			plt.savefig('model.pdf')
+			
+			
+			return(model, history_dict)
+		
 
 
 		def simple_val_of_data(x,y):
@@ -284,40 +334,10 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			
 			return x_train, x_test, y_train, y_test
 
-			
 
-			#xtr, ytr, xte, yte = simple_val_of_data(x,y)
-			
-			#new_model =  pop_layer(model)
-			
-			#ready2train = add_layer(new_model)
-
-
-			#return loaded_model.predict(x), load_model
 		if classify == True:
-			
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 
-			loaded_model_json = json_file.read()
-
-			loaded_model = model_from_json(loaded_model_json)
-
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
-			
-			print("Loaded model from disk")
-			
-			model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
-			xtr, ytr, xte, yte = simple_val_of_data(x,y)
-		
-			new_model =  pop_layer(model)
-		
-			ready2train = add_layer(new_model)
-			if trainable == False:
-				for layer in ready2train.layers:
-					layer.trainable = False
-			else: 
-				for layer in ready2train.layers:
-					layer.trainable = True
+			mod, h  = add_layer()
 		
 		if miecorr == True:
 			####################################################################################################
@@ -327,7 +347,6 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			#	
 			####################################################################################################x
 
-			#json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
 			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 			
 			loaded_model_json = json_file.read()
@@ -343,34 +362,6 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			model = loaded_model.compile(loss='mean_squared_error', optimizer='adam')
 
 		
-		
-			#return loaded_model.predict(x), load_model
-			#Freeze pretrained layers
-
-		#xtr, ytr, xte, yte = simple_val_of_data(x,y)
-		
-		#new_model =  pop_layer(model)
-		
-		#ready2train = add_layer(new_model)
-
-
-
-
-
-		
-		#if trainable == False:
-		#	for layer in model.layers:
-		#		layer.trainable = False
-		#else: 
-		#	for layer in model.layers:
-		#		layer.trainable = True
-
-
-
-		#print(loaded_model)
-
-
-
 
 #--------------------------------------------------
 #--------------------------------------------------
