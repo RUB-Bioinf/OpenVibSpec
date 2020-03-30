@@ -28,19 +28,16 @@ def randomforest_train(x,y,n_samples=1000, n_features=4,
                            n_informative=2, n_redundant=0,
                            random_state=0, shuffle=False,n_jobs=2, save_file_path=str()):
 	"""
-	an dieser stelle if einbauen um None save model einzubauen
 
 	"""
-	#if n_arrays == 0:
-	#	raise ValueError("At least one array required as input")
+	
 	from sklearn.ensemble import RandomForestClassifier
 	from sklearn.datasets import make_classification
 	
 	clf = RandomForestClassifier(n_jobs=2, random_state=0)
 	
 	clf.fit(x, y)
-	#filename = 'finalized_model.sav'
-	#MODELPATH = os.path.dirname(openvibspec.models.__file__)
+
 
 	filename = save_file_path
 	
@@ -58,6 +55,7 @@ def randomforest_load_eval(x,clf):
 
 def kmeans(x, c=4):
 	from sklearn.cluster import KMeans
+
 	kmeans = KMeans(n_clusters=c)
 	kmeans.fit(x)
 	y = kmeans.predict(x)
@@ -91,7 +89,6 @@ def pca_all(x,pc):
 	
 	p = pca.transform(x)
 	
-	#	sv = pca.singular_values_(x) funktioniert nicht-> anpassen!
 	
 	vr = pca.explained_variance_ratio_
 	
@@ -103,7 +100,6 @@ def pca_all(x,pc):
 	
 	scores = pca.score_samples(x)
 	
-	#return p, sv, vr, cov, it, sc
 	return p, vr, cov, it, scores
 
 
