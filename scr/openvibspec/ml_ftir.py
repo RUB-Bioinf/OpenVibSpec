@@ -225,7 +225,7 @@ class DeepLearn:
 			return loaded_model.predict(x), load_model
 
 	
-	def transfer(self,x, y, batch,train_epochs,add=[], classify=False, miecorr=False, trainable=False ):
+	def transfer(self,x, y, batch,train_epochs,add_l=[], classify=False, miecorr=False, trainable=False ):
 		import keras
 		from keras.models import Model
 		from keras.optimizers import RMSprop, Adam, SGD
@@ -240,17 +240,24 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 		def onehot(y):
 			import keras
 			from keras.utils import np_utils
+
 			c = np.max(y) + 1
+			
 			y1hot = np_utils.to_categorical(y, num_classes=c)
+			
 			return(y1hot)
 
 		def add_layer():
 			from keras.utils import np_utils
 			from keras.layers import Input, Dense 
 			from keras.models import Model
-			yoh =onehot(y)
+			from keras import models
+
+			yoh = onehot(y)
+
 			sm = int(yoh.shape[1])
-			print(sm)
+			
+			print("training on",sm,"classes")
 			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 			
 			loaded_model_json = json_file.read()
@@ -258,10 +265,8 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			loaded_model = model_from_json(loaded_model_json)
 			
 			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
-		
 			
-			loaded_model.outputs = [loaded_model.layers[-2].output]
-		
+			
 			
 			if trainable == False:
 				for layer in loaded_model.layers:
@@ -270,21 +275,69 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 				for layer in loaded_model.layers:
 					layer.trainable = True
 			
-			preds = Dense(sm, name='newlast', activation='softmax')(loaded_model.output)
-		
-			model = Model(inputs=loaded_model.input, outputs=preds)
-			model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 			
-			history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
-			print(model.summary())
+			
+			if not add_l:
+				preds = Dense(sm, name='newlast', activation='softmax')(loaded_model.layers[-3].output)
+
+				model = Model(inputs=loaded_model.input, outputs=preds)
+
+				model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+
+				history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
+
+				print(model.summary())
+
+			if add_l:
+				
+				
+				def add_2_model(add_l):
+					
+					base = Model(inputs=loaded_model.input, outputs=loaded_model.layers[-3].output)
+					
+					model = Sequential()
+					model.add(base)
+					model.add(Dense(add_l[0], input_dim=450,activation='relu'))
+
+					for layer_size in add_l[1:]:
+					  model.add(Dense(layer_size,activation='relu'))
+					
+
+					model.add(Dense(sm,activation='softmax'))
+
+					return model
+
+				model = add_2_model(add_l)
+				
+				model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+				
+				history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
+				
+				print(model.summary())
+
+
+
+
+
+			
+			
+			
+			
+			
+			
 
 			######################SAVING_MODEL###########################
+			from datetime import datetime
+
+			dtstr = datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p")
 			model_json = model.to_json()
-			with open("model_ptMLP.json", "w") as json_file:
+			with open("model_ptMLP"+dtstr+".json", "w") as json_file:
 				json_file.write(model_json)
 
-			model.save_weights("model_model_ptMLP.h5")
-			print("Saved model to disk")
+			model.save_weights("model_model_ptMLP"+dtstr+".h5")
+			print("Saved model to disk to","model_model_ptMLP"+dtstr+".json")
+			print("and weights to")
+			print("Saved model to disk to","model_model_ptMLP"+dtstr+".h5")
 
 
 
@@ -308,7 +361,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			plt.plot(e, l, 'b', label='Loss Training')
 			
 			plt.xlabel('Epochs')
-			#plt.ylabel()
+			
 			plt.legend()
 			
 			plt.savefig('model.pdf')
@@ -380,6 +433,3 @@ def load_model(model):
 	from  sklearn.externals import joblib
 	m = joblib.load(model)
 	return(m)
-
-
-
