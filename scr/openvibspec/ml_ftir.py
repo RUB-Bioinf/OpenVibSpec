@@ -136,7 +136,6 @@ def plot_specs_by_class(x,classes_array,class2plot):
 ####################################################################################################
 
 
-#class DeepLearn(object):
 class DeepLearn:
 	
 	
@@ -204,7 +203,7 @@ class DeepLearn:
 			#	
 			####################################################################################################x
 
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_regression.json'), 'r')
 			
 			loaded_model_json = json_file.read()
 
@@ -232,6 +231,7 @@ class DeepLearn:
 		from keras.models import model_from_json
 		from keras.callbacks import ModelCheckpoint
 		from keras.models import Sequential
+		from datetime import datetime
 		"""
 ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
@@ -300,7 +300,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 					model.add(Dense(add_l[0], input_dim=450,activation='relu'))
 
 					for layer_size in add_l[1:]:
-					  model.add(Dense(layer_size,activation='relu'))
+						model.add(Dense(layer_size,activation='relu'))
 					
 
 					model.add(Dense(sm,activation='softmax'))
@@ -316,28 +316,19 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 				print(model.summary())
 
 
-
-
-
-			
-			
-			
-			
-			
-			
-
-			######################SAVING_MODEL###########################
-			from datetime import datetime
-
 			dtstr = datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p")
+			
 			model_json = model.to_json()
-			with open("model_ptMLP"+dtstr+".json", "w") as json_file:
+			
+			with open("model_ptMLP_class_"+dtstr+".json", "w") as json_file:
 				json_file.write(model_json)
 
-			model.save_weights("model_model_ptMLP"+dtstr+".h5")
-			print("Saved model to disk to","model_model_ptMLP"+dtstr+".json")
+			model.save_weights("model_model_ptMLP_class_"+dtstr+".h5")
+
+			print("Saved model to disk to","model_model_ptMLP_class_"+dtstr+".json")
 			print("and weights to")
-			print("Saved model to disk to","model_model_ptMLP"+dtstr+".h5")
+			print("Saved model to disk to","model_model_ptMLP_class_"+dtstr+".h5")
+
 
 
 
@@ -383,34 +374,65 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			
 			return x_train, x_test, y_train, y_test
 
+		def train_layer():
+			from keras.utils import np_utils
+			from keras.layers import Input, Dense 
+			from keras.models import Model
+			from keras import models
+			
+			sm = int(y.shape[1])
+			
+			
+			json_filer = open(os.path.join(str(MODELPATH)+'/model_weights_regression.json'), 'r')
+			
+			loaded_model_jsonr = json_filer.read()
+			
+			loaded_modelr = model_from_json(loaded_model_jsonr)
+			
+			loaded_modelr.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
+			
+			
+			
+			if trainable == False:
+				for layer in loaded_modelr.layers:
+					layer.trainable = False
+			else: 
+				for layer in loaded_modelr.layers:
+					layer.trainable = True
+			
+			loaded_modelr.compile(loss='mean_squared_error', optimizer='adam')
+			
+			history = loaded_modelr.fit(x,y, batch_size=batch, epochs=train_epochs )
+
+			dtstr = datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p")
+			
+			print(loaded_modelr.summary())
+			
+			model_json = loaded_modelr.to_json()
+			with open("model_ptMLP_MieReg_"+dtstr+".json", "w") as json_file:
+				json_file.write(model_json)
+			
+			loaded_modelr.save_weights("model_model_ptMLP_MieReg_"+dtstr+".h5")
+			
+			print("Saved model to disk to","model_model_ptMLP_MieReg_"+dtstr+".json")
+			print("and weights to")
+			print("Saved model to disk to","model_model_ptMLP_MieReg_"+dtstr+".h5")
+			
+			return
 
 		if classify == True:
+			if y.shape[1] != x.shape[1]:
+				raise ValueError('This is a classification problem: x and y need 450 datapoints in WVN range of 950-1800 1/cm')
 
 			mod, h  = add_layer()
+
 		
 		if miecorr == True:
-			####################################################################################################
-			#	THIS MODEL NEEDS THE- FIRST 909 WVN. RANGE FROM 950-23XX WVN
-			#	
-			#	
-			#	
-			####################################################################################################x
-
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
-			
-			loaded_model_json = json_file.read()
-			
-			loaded_model = model_from_json(loaded_model_json)
-			
-		
-			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
-			
-			print("Loaded model from disk")
-			
-			model = loaded_model.compile(loss='mean_squared_error', optimizer='adam')
+			if y.shape[1] != x.shape[1]:
+				raise ValueError('This is a regression problem: x and y need 909 datapoints in WVN range of 950-2300 1/cm')
 
 		
+			train_layer()
 
 #--------------------------------------------------
 #--------------------------------------------------
