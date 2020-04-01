@@ -177,6 +177,10 @@ class DeepLearn:
 		####################################################################################################
 
 		if classify == True:
+
+			if x.shape[1] != 450:
+			
+				raise ValueError('This is a classification problem: Your spectral data needs 450 datapoints in WVN range of 950-1800 1/cm')
 			
 			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
 
@@ -196,8 +200,12 @@ class DeepLearn:
 			return loaded_model.predict(x), load_model
 
 		if miecorr == True:
+
+			if x.shape[1] != 450:
+			
+				raise ValueError('This is a regression problem: Your spectral data needs 909 datapoints in WVN range of 950-2300 1/cm')
 			####################################################################################################
-			#	THIS MODEL NEEDS THE FIRST 909 WVN. RANGE FROM 950-23XX WVN
+			#	THIS MODEL NEEDS THE FIRST 909 WVN. RANGE FROM 950-2300 WVN 1/cm
 			#	
 			#	
 			#	
