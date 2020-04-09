@@ -262,7 +262,6 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			from keras import models
 
 			yoh = onehot(y)
-
 			sm = int(yoh.shape[1])
 			
 			print("training on",sm,"classes")
@@ -429,8 +428,8 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			return
 
 		if classify == True:
-			if y.shape[1] != x.shape[1]:
-				raise ValueError('This is a classification problem: x and y need 450 datapoints in WVN range of 950-1800 1/cm')
+			if x.shape[1] != 450:
+				raise ValueError('This is a classification problem: x needs to be 450 datapoints in WVN range of 950-1800 1/cm')
 
 			mod, h  = add_layer()
 
