@@ -262,6 +262,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			from keras import models
 
 			yoh = onehot(y)
+
 			sm = int(yoh.shape[1])
 			
 			print("training on",sm,"classes")
@@ -330,11 +331,11 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			with open("model_ptMLP_class_"+dtstr+".json", "w") as json_file:
 				json_file.write(model_json)
 
-			model.save_weights("model_model_ptMLP_class_"+dtstr+".h5")
+			model.save_weights("model_ptMLP_class_"+dtstr+".h5")
 
-			print("Saved model to disk to","model_model_ptMLP_class_"+dtstr+".json")
+			print("Saved model to disk to","model_ptMLP_class_"+dtstr+".json")
 			print("and weights to")
-			print("Saved model to disk to","model_model_ptMLP_class_"+dtstr+".h5")
+			print("Saved model to disk to","model_ptMLP_class_"+dtstr+".h5")
 
 
 
@@ -419,11 +420,11 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			with open("model_ptMLP_MieReg_"+dtstr+".json", "w") as json_file:
 				json_file.write(model_json)
 			
-			loaded_modelr.save_weights("model_model_ptMLP_MieReg_"+dtstr+".h5")
+			loaded_modelr.save_weights("model_ptMLP_MieReg_"+dtstr+".h5")
 			
-			print("Saved model to disk to","model_model_ptMLP_MieReg_"+dtstr+".json")
+			print("Saved model to disk to","model_ptMLP_MieReg_"+dtstr+".json")
 			print("and weights to")
-			print("Saved model to disk to","model_model_ptMLP_MieReg_"+dtstr+".h5")
+			print("Saved model to disk to","model_ptMLP_MieReg_"+dtstr+".h5")
 			
 			return
 
@@ -440,6 +441,34 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 		
 			train_layer()
+
+
+	def load_and_predict(self, x, modelname, save=False):
+		import keras
+		from keras.models import Model
+		from keras.optimizers import RMSprop, Adam, SGD
+		from keras.models import model_from_json
+		from keras.callbacks import ModelCheckpoint
+		from keras.models import Sequential
+		from datetime import datetime
+		
+		json_file = open(str(modelname)+'.json', 'r')
+		print(str(modelname)+'.json' ) 
+		loaded_model_json = json_file.read()
+		
+		loaded_model = model_from_json(loaded_model_json)
+		
+		loaded_model.load_weights(str(modelname)+".h5") 
+		
+		print("Loaded model from disk")
+		
+		model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+		if save == True:
+
+			np.save(str(modelname)+'_prediction.npy',loaded_model.predict(x))
+		
+		else:
+			return loaded_model.predict(x)
 
 #--------------------------------------------------
 #--------------------------------------------------
