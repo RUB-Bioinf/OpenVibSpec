@@ -310,17 +310,6 @@ class DeepLearn:
 		from keras.optimizers import RMSprop, Adam, SGD
 		from keras.models import model_from_json
 		from keras.callbacks import ModelCheckpoint
-		"""
-		Args:
-			x (numpy array):
-			
-			classify=False(str):
- 			
- 			miecorr=False(str):
-		"""
-
-
-
 
 		####################################################################################################
 		#	DETERMINE WICH MODEL PARAMETERS YOUN WNAT TO USE
