@@ -139,16 +139,167 @@ def plot_specs_by_class(x,classes_array,class2plot):
 class DeepLearn:
 	
 	
-	"""	
-	HERE YOU CAN FIND ALL PRETRAINED DEEP NEURAL NETWORKS FOR THE PURPOSE OF CLASSIFICATION AND RMIES-CORRECTION OF 
-	FTIR-SPECTROSCOPIC MEASUREMENTS OF TISSUE
+	"""
+	Deep learning based procedures for the use in spectroscopy.
 
-	THE USED DATASETS FOR TRAINING WERE ALL BASED ON FFPE (formaldehyde-fixed paraffin-embedded) TISSUE FROM COLON
+	Here you can find pretrained deep neural networks, which can be used for classification / RMieS-Correction, or further training.
+	To ensure a smooth use of your data, the spectroscopic specifications of the used training data are shown below:
+		
+		Attributes of the raw data:
+
+			- Spectroscopic data recording was performed on a Agilent Cary 620/670 FTIR Imaging System with 128x128 pixel MCT (Mercury Cadmium Telluride) and FPA for whole slide.
+			- Data recording with 128 scans, results in a wavenumber range of 950 to 3700 cm^1.
+			- With a spectral resolution of ca. 4 cm^1 this resulted in 1428 datapoints on the z-axis.
+			- The pixel has a edge length of 5.65µm.
+			- Per detector field this results in a FOV of ca. 715x715 µm^2.
+
+		Data sources:
+			Tissue was formaldehyde-fixed paraffin-embedded (FFPE) from human colon.
+			- https://www.biomax.us/CO1002b
+			- https://www.biomax.us/tissue-arrays/Colon/CO722
+		
+		You can find further information on data collection in: 
+
+			[1] https://pubs.rsc.org/en/content/articlelanding/fd/2016/c5fd00157a#!divAbstract
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	Components of the class are the following methods:
+
+	DeepLearn.net()
+
+		This method returns the basic structure of the used deep neural networks in form of a graph. 
+		For further use, this structure was bound to the python interfaces of TensorFlow and Keras to allow a permanent integration in most modern workflows.
+		It is currently divided into two main classes. First, the spectral classification and second the RMieS-correction of FTIR spectral data, using a fast deep learning algorithm.
+		
+
+		Specifications of the used training data:
+
+			We used complete uncorrected FTIR data in the range of the fingerprint region between a wavenumber of 950 to 1800 cm^1.
+
+			The groundtruth was based on the segmentation of the used random forest from [1]. 
+			These in turn were created from a multi-step process of pre-segmentation of RMieS-corrected spectra and pathologist annotation. 
+
+			With regard to the learning behaviour of the deep neuronal networks, it could be shown that no new classifier has to be built but 
+			that the existing networks in transfer learning can be used for a variety of applications,  while the false positive number could be significantly reduced. [2]
+			
+
+			The data from groundtruth was processed under the following conditions:
+				
+				- Agilent Resolution Pro Software.
+				- Fourier Transformation using Merz phase correction.
+				- Blackman-Harris-4-term apodization and zero filling of 2.
+
+
+
+
+
+		Specifications for own use:
+
+			The spectral data must be available as 2d-numpy array which is structured as follows:
+
+				x_data = x_axis*y_axis, z_axis 
+
+				It is important for the application to observe the data points on the z-axis
+
+				The classification ( dl.net(x_data,classify=True) ) of the individual RMieS-uncorrected spectra (semantic segmentation) is carried 
+				out on the first 450 wavenumbers between 950 and 1800 cm^1.
+
+				The correction ( dl.net(x_data, miecorr=True) ) of the raw data is done on the first 909 wavenumbers between 950 and 2300 cm^1.
+
+
+
+
+		Examples:
+
+			import openvibspec.ml_ftir as ovml
+
+			dl = ovml.DeepLearn()
+			
+			x_pred, model = dl.net(x_data[:,:450],classify=True)
+
+			x_corr, model = dl.net(x_data[:,:909], miecorr=True)
+
+		Args:
+			x_data(numpy array):
+			
+			classify=False(str): if True it uses the entered data (x_data) to predict previously learned 19 classes on uncorrected FTIR spectra of human colon tissue
+			
+			miecorr=False(str):  if True it uses the entered data (x_data) to predict the regression of the RMieS-Correction Function based on Bassan
+
+		References:
+			[2] Classification of (RMieS) uncorrected FTIR spectra with deep neural networks.
+			https://academic.oup.com/bioinformatics/article-abstract/36/1/287/5521621
+			
+			[3] Deep neural networks for the correction of RMie Scattering in FTIR data.
+			https://arxiv.org/abs/2002.07681	
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	DeepLearn.transfer()
+
+		The transfer function is based on using the data representations discovered by the existing networks for faster learning on new data. 
+		For example, the networks trained on ffpe can be used to create classification networks for other tissues and their laboratory preparation with significantly less data. 
+		For further informations regarding the theoretical part of this procedure, please see reference [2].
+
+		Besides the spectral data a groundtruth as label is needed for the transfer learning.
+
+		Models and weights are automatically saved in the working directory in *h5 and *json format using following naming convention:
+
+
+			model_ptMLP_MieReg_%d-%m-%Y_%I-%M-%S_%p
+
+		
+
+
+
+		Examples:
+			import openvibspec.ml_ftir as ovml
+
+			dl = ovml.DeepLearn()
+
+			dl.transfer(x_data[:5,:909],y_data, batch=10, train_epochs=10, miecorr=True, trainable=False)
+
+			dl.transfer(x_data[:5,:909],x_data_corrected[:5,:909], batch=10, train_epochs=10, miecorr=True, trainable=False)
+		
+		Args:
+
+			x_data(numpy array): 2D array shape(x_axis*y_axis, z_axis)  
+
+			y_data(numpy array): label vector with classes assigned as numbers from 1 to n 
+
+			batch(int): number of examples per batch
+
+			train_epochs(int): number of iterations per training
+
+			add_l(list of int()): possible list for adding layers
+
+			classify=True(str): classification modus
+			
+			miecorr=True(str): regresssion modus
+
+			trainable=False(str): if trainable=True: allows the adjustment of the already loaded weights from the pretrained networks 
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
-	BIOMAX CO1002b/CO722
+	DeepLearn.load_and_predict()
 
-	FOR FURTHER INFORMATION PLEASE REFER TO Raulf et al.,2019
+		This function allows to load and use the trained network which was saved under DeepLearn.transfer()
+	
 
+		Examples:
+
+				import openvibspec.ml_ftir as ovml
+	
+				dl = ovml.DeepLearn()
+				
+				a =  dl.load_and_predict(x_new_data[:,:450],'model_ptMLP_class_DATE_TIME')
+
+		Args:
+
+			x_new_data(numpy array): 2D array shape(x_axis*y_axis, z_axis)  
+			
+			model_ptMLP_class_DATE_TIME(str): model_ptMLP_MieReg_* or model_ptMLP_class_*
+
+			
 	"""
 
 		
@@ -159,12 +310,17 @@ class DeepLearn:
 		from keras.optimizers import RMSprop, Adam, SGD
 		from keras.models import model_from_json
 		from keras.callbacks import ModelCheckpoint
-		#import tensorflow as tf
-		#import tensorflow.compat.v1 as tf
-		#tf.disable_v2_behavior()
 		"""
-		TODO: UPDATE TO TENSORFLOW VERSION 2 
+		Args:
+			x (numpy array):
+			
+			classify=False(str):
+ 			
+ 			miecorr=False(str):
 		"""
+
+
+
 
 		####################################################################################################
 		#	DETERMINE WICH MODEL PARAMETERS YOUN WNAT TO USE
@@ -240,10 +396,10 @@ class DeepLearn:
 		from keras.callbacks import ModelCheckpoint
 		from keras.models import Sequential
 		from datetime import datetime
-		"""
-ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
+		
+		#	ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
-		"""
+		
 	
 		def onehot(y):
 			import keras
