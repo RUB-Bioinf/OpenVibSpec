@@ -1,10 +1,5 @@
 from __future__ import absolute_import
 ###########################################
-# hier alle ein-/auslese routinen aus Matlab, R
-# und was noch kommen koennte
-#
-#
-#
 ###########################################
 import h5py
 import numpy as np 
@@ -20,9 +15,6 @@ def read_mat2py(x):
 		print(fk)
 		return(fk)
 		#return(fk, f)
-		 
-#def import_all(x):
-#	read_mat2py(x)
 
 
 
@@ -49,10 +41,6 @@ def import_mat2py(x):
 			arrays[k] = np.array(v)
 		return(arrays[k])
 
-#def importmatlab(x):
-#	for k, v in x.items():
-#		arrays[k] = np.array(v)
-#	return(arrays[k])
 
 
 def write2HDF(x):
@@ -117,8 +105,20 @@ def bands(x):
 
 
 
+def load_import(name):
+	with h5py.File(str(name), 'r') as f:
+		
+		fk = [str(r) for r in f.keys()]
+		
+		if fk[0] != 'HyperSpecCube':
+			print('Raw import not from OpenVibSpec. Please use read_mat2py() instead to get variable names, and load manually')
+		
+		else:
+			c  = np.asarray(f['HyperSpecCube'])
+			wn  = np.asarray(f['WVN'])
 
-
+	return c, wn
+		
 
 
 
@@ -310,7 +310,7 @@ class Imports():
 			return out_block
 		 
 		out = create_mosaic_arrofarrs(ms1)	
-	
+		del ms1
 
 		def save_mosaic(out):
 
