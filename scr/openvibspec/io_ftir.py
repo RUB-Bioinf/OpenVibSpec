@@ -132,7 +132,7 @@ def load_import(name):
 #import os, glob, re
 #import openvibspec as ov
 #import numpy as np
-class Imports():
+class RawIO():
 	
 	def import_raw_qcl(self,file_dir, new_file_name):
 
