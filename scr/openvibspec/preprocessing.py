@@ -72,6 +72,9 @@ def baseline_als(data, lam=1000, p=0.05, n_iter=10):
 
 from typing import Union as U, Tuple as T, Optional
 from sklearn.decomposition import PCA
+from sklearn.model_selection import LeaveOneGroupOut
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.metrics import confusion_matrix
 
 import numpy as np
 
@@ -100,7 +103,7 @@ def emsc(spectra: np.ndarray,
     1) b*reference +                                    # reference coeff
     k) c_0*constituent[0] + ... + c_k*constituent[k] +  # constituents coeffs
     a_0 + a_1*w + a_2*w^2 + ...                         # polynomial coeffs
-    :return: preprocessed spectra
+    :return: preprocessed spectra, [coefficients]
     """
 #    assert poly_order >= 0, 'poly_order must be >= 0'
     
@@ -149,21 +152,21 @@ def emsc(spectra: np.ndarray,
 
 def rep_emsc(spectra: np.ndarray, 
              wavenumbers: np.ndarray, 
+             replicate: np.ndarray,
              poly_order: Optional[int]=2,
              reference: np.ndarray = None, 
-             replicate: np.ndarray = None,
              n_comp: int=1,
              use_reference: bool=True,
              return_coefs: bool = False):
     """
-    Preprocess all spectra with EMSC
+    Preprocess all spectra with replicate EMSC
     :param spectra: ndarray of shape [n_samples, n_channels]
     :param wavenumbers: ndarray of shape [n_channels]
+    :param replicate: ndarray of shape [n_samples] 
     :param poly_order: order of polynomial
     None: EMSC without polynomial components
     :param reference: reference spectrum 
     None: use average spectrum as reference;
-    :param replicate: ndarray of shape [n_samples] 
     :param n_comp: number of principal components used for replicate correction
     :param use_reference: if False not include reference in the model
     :param return_coefs: if True returns coefficients
@@ -172,7 +175,7 @@ def rep_emsc(spectra: np.ndarray,
     1) b*reference +                                    # reference coeff
     n) r_0*loading_rep[0] + ... + r_n*loading_rep[n] +  # replicate coeffs
     a_0 + a_1*w + a_2*w^2 + ...                         # polynomial coeffs
-    :return: preprocessed spectra
+    :return: preprocessed spectra, [coefficients]
     """
     constituents = cal_rep_matrix(spectra=spectra,
                                   wavenumbers=wavenumbers,
@@ -189,14 +192,14 @@ def rep_emsc(spectra: np.ndarray,
                return_coefs=return_coefs)
     
     return res
-    
+ 
 def cal_rep_matrix(spectra: np.ndarray, 
                    wavenumbers: np.ndarray, 
-                   replicate: np.ndarray = None,
-                   do_PCA: bool=False,
+                   replicate: np.ndarray,
+                   do_PCA: bool = False,
                    n_comp: int = 1):
     """
-    Preprocess all spectra with EMSC
+    Calculate mean spectra for each replicate, and do PCA if required
     :param spectra: ndarray of shape [n_samples, n_channels]
     :param wavenumbers: ndarray of shape [n_channels]
     :param replicate: ndarray of shape [n_samples] 
@@ -211,8 +214,11 @@ def cal_rep_matrix(spectra: np.ndarray,
         
     rep_mean = []
     rep_uni = np.unique(replicate)
-    for j in range(len(rep_uni)):
-        rep_mean.append(np.mean(spectra[replicate==rep_uni[j],:], axis=0))
+    
+    #### replace for loop with map ####
+    rep_mean = list(map(lambda x:np.mean(spectra[replicate==x,:], axis=0), rep_uni))
+#    for j in range(len(rep_uni)):
+#        rep_mean.append(np.mean(spectra[replicate==rep_uni[j],:], axis=0))
         
     rep_mean = np.stack(rep_mean, axis=0)
     
@@ -224,3 +230,106 @@ def cal_rep_matrix(spectra: np.ndarray,
         return rep_mean, rep_columns
     else:
         return rep_mean
+
+def cal_merit_lda(spectra: np.ndarray, 
+                  wavenumbers: np.ndarray, 
+                  replicate: np.ndarray,
+                  label: np.ndarray):
+    """
+    Benchmark of replicate EMSC correction based on LDA classification
+    :param spectra: ndarray of shape [n_samples, n_channels]
+    :param wavenumbers: ndarray of shape [n_channels]
+    :param replicate: ndarray of shape [n_samples] 
+    :param label: ndarray of shape [n_samples] 
+    :return: mean sensitivity of leave-one-replicate-out cross-validation
+    """
+    
+    logo = LeaveOneGroupOut()
+    
+    res_true = []
+    res_pred = []
+    for train, test in logo.split(spectra, label, groups=replicate):
+        tmp_model = LinearDiscriminantAnalysis()
+        tmp_model.fit(spectra[train], label[train])
+        res_pred = np.append(res_pred, tmp_model.predict(spectra[test]))
+        res_true = np.append(res_true, label[test])
+
+    c_m = confusion_matrix(res_true, res_pred, labels=np.unique(label))
+    
+    res = np.mean(np.diag(c_m)/np.sum(c_m, axis=1))
+    
+    return res
+
+def rep_emsc_opt(spectra: np.ndarray, 
+                 wavenumbers: np.ndarray, 
+                 replicate: np.ndarray,
+                 label: np.ndarray,
+                 poly_order: Optional[int]=2,
+                 reference: np.ndarray = None, 
+                 n_comp_all: np.ndarray = (1,2,3),
+                 use_reference: bool=True,
+                 return_coefs: bool = False,
+                 fun_merit = cal_merit_lda,
+                 do_correction: bool=True):
+    """
+    Preprocess all spectra with replicate EMSC, wit automatically optimization of n_comp 
+    :param spectra: ndarray of shape [n_samples, n_channels]
+    :param wavenumbers: ndarray of shape [n_channels]
+    :param replicate: ndarray of shape [n_samples] 
+    :param label: ndarray of shape [n_samples] 
+    :param poly_order: order of polynomial
+    None: EMSC without polynomial components
+    :param reference: reference spectrum 
+    None: use average spectrum as reference;
+    :param n_comp_all: calidated number of principal components 
+    used for replicate correction
+    :param use_reference: if False not include reference in the model
+    :param return_coefs: if True returns coefficients
+    [n_samples, n_coeffs], where n_coeffs = 1 + n_comp + (order + 1).
+    Order of returned coefficients:
+    1) b*reference +                                    # reference coeff
+    n) r_0*loading_rep[0] + ... + r_n*loading_rep[n] +  # replicate coeffs
+    a_0 + a_1*w + a_2*w^2 + ...                         # polynomial coeffs
+    :param fun_merit: function used to calculate the merits 
+    benchmarking the goodness of replicate correction
+    :param do_correction: if or not do replicate EMSC correction using optimal n_comp
+    :return: [preprocessed spectra, [coefficients]], merits, opt_comp
+    """
+
+    uni_rep = np.unique(replicate)
+    
+    merits = []
+    for n_comp in n_comp_all:
+        
+        if n_comp >= len(uni_rep): break
+    
+        prep_spectra = rep_emsc(spectra=spectra, 
+                                wavenumbers=wavenumbers, 
+                                replicate=replicate,
+                                poly_order=poly_order,
+                                reference=reference, 
+                                n_comp=n_comp,
+                                use_reference=use_reference,
+                                return_coefs=False)
+        
+        met = fun_merit(spectra=prep_spectra,
+                        wavenumbers=wavenumbers,
+                        replicate=replicate,
+                        label=label)
+        
+        merits.append(met)
+    
+    opt_comp = n_comp_all[np.argmax(merits)]
+
+    if do_correction:
+        res = rep_emsc(spectra=spectra, 
+                       wavenumbers=wavenumbers, 
+                       replicate=replicate,
+                       poly_order=poly_order,
+                       reference=reference, 
+                       n_comp=opt_comp,
+                       use_reference=use_reference,
+                       return_coefs=return_coefs)
+        return res, merits, opt_comp
+    else:
+        return merits, opt_comp
