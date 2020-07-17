@@ -197,7 +197,12 @@ class DeepLearn:
 			
 			model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-			return loaded_model.predict(x), load_model
+			from sklearn.preprocessing import normalize
+			
+
+			trX = normalize(x, axis=1, norm='l2')
+
+			return loaded_model.predict(trX), load_model
 
 		if miecorr == True:
 
@@ -240,11 +245,14 @@ class DeepLearn:
 		from keras.callbacks import ModelCheckpoint
 		from keras.models import Sequential
 		from datetime import datetime
+		from sklearn.preprocessing import normalize
+			
+
 		"""
 ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 		"""
-	
+		trX = normalize(x, axis=1, norm='l2')
 		def onehot(y):
 			import keras
 			from keras.utils import np_utils
@@ -291,7 +299,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 				model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-				history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
+				history = model.fit(trX,yoh,batch_size=batch,epochs=train_epochs )
 
 				print(model.summary())
 
@@ -318,7 +326,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 				
 				model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 				
-				history = model.fit(x,yoh,batch_size=batch,epochs=train_epochs )
+				history = model.fit(trX,yoh,batch_size=batch,epochs=train_epochs )
 				
 				print(model.summary())
 
@@ -372,12 +380,15 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 		def simple_val_of_data(x,y):
 			from sklearn.model_selection import train_test_split
 			from random import randrange
+			from sklearn.preprocessing import normalize
+
+			trX = normalize(x, axis=1, norm='l2')
 			
 			seed = randrange(999)
 			
 			print('used random seed was', seed)
 			
-			x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.4,random_state=seed)
+			x_train, x_test, y_train, y_test = train_test_split(trX, y, test_size=0.4,random_state=seed)
 			
 			return x_train, x_test, y_train, y_test
 
