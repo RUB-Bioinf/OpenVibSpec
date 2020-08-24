@@ -19,9 +19,7 @@ plt.style.use('ggplot')
 import sys
 import openvibspec.models
 
-from pathlib import Path
-MODELPATH = Path('openvibspec/models').absolute()
-
+MODELPATH = os.path.join(os.path.dirname(__file__), "models")
 
 
 def randomforest_train(x,y,n_samples=1000, n_features=4,
@@ -181,8 +179,8 @@ class DeepLearn:
 			if x.shape[1] != 450:
 			
 				raise ValueError('This is a classification problem: Your spectral data needs 450 datapoints in WVN range of 950-1800 1/cm')
-			
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+
+			json_file = open(os.path.join(MODELPATH, 'model_weights_classification.json'), 'r')
 
 			loaded_model_json = json_file.read()
 
@@ -191,7 +189,7 @@ class DeepLearn:
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
+			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_classification.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
@@ -216,7 +214,7 @@ class DeepLearn:
 			#	
 			####################################################################################################x
 
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_regression.json'), 'r')
+			json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
 			
 			loaded_model_json = json_file.read()
 
@@ -225,7 +223,7 @@ class DeepLearn:
 			if show == True:
 				print(loaded_model.summary())
 			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
+			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_regression.best.hdf5"))
 			
 			print("Loaded model from disk")
 			
@@ -273,13 +271,13 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			sm = int(yoh.shape[1])
 			
 			print("training on",sm,"classes")
-			json_file = open(os.path.join(str(MODELPATH)+'/model_weights_classification.json'), 'r')
+			json_file = open(os.path.join(MODELPATH, 'model_weights_classification.json'), 'r')
 			
 			loaded_model_json = json_file.read()
 			
 			loaded_model = model_from_json(loaded_model_json)
 			
-			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
+			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_classification.best.hdf5"))
 			
 			
 			
@@ -401,13 +399,13 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			sm = int(y.shape[1])
 			
 			
-			json_filer = open(os.path.join(str(MODELPATH)+'/model_weights_regression.json'), 'r')
+			json_filer = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
 			
 			loaded_model_jsonr = json_filer.read()
 			
 			loaded_modelr = model_from_json(loaded_model_jsonr)
 			
-			loaded_modelr.load_weights(os.path.join(str(MODELPATH)+"/model_weights_regression.best.hdf5"))
+			loaded_modelr.load_weights(os.path.join(MODELPATH, "model_weights_regression.best.hdf5"))
 			
 			
 			
