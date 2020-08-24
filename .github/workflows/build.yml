@@ -25,8 +25,8 @@ jobs:
           if [ -f requirements.txt]; then pip install -r requirements.txt; fi
           pip install -e .
 
-      - name: run linter [flake8]
-        run: flake8 .
+      #- name: run linter [flake8]
+      #  run: flake8 .
 
       - name: run unit tests [pytests]
         run: pytest
