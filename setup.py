@@ -17,10 +17,6 @@ setup(
 		"Intended Audience :: Developers",
 		"Programming Language :: Python 3",
 		"Programming Language :: Python 3.6",
-
-
 	],
-
-
-
+	include_package_data=True,
 	)
