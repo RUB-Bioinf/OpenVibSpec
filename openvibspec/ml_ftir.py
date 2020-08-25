@@ -444,7 +444,7 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 		
 		if miecorr == True:
-			if y.shape[1] != x.shape[1]:
+			if x.shape[1] != 909 or y.shape[1] != x.shape[1]:
 				raise ValueError('This is a regression problem: x and y need 909 datapoints in WVN range of 950-2300 1/cm')
 
 		
