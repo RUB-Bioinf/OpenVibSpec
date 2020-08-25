@@ -17,9 +17,8 @@ from sklearn.model_selection import train_test_split
 plt.style.use('ggplot')
 ###########################################
 import sys
-import openvibspec.models
 
-MODELPATH = os.path.join(os.path.dirname(__file__), "models")
+from openvibspec.models import CellularComponentsClassification, RMIECorrection
 
 
 def randomforest_train(x,y,n_samples=1000, n_features=4,
@@ -134,6 +133,13 @@ def plot_specs_by_class(x,classes_array,class2plot):
 ####################################################################################################
 
 
+def check_compatible_x(model, x):
+	wn = model.wavenumbers
+	if x.shape[1] != len(wn):
+		raise ValueError('Your spectral data needs %d datapoints in WVN range of %0.3f-%0.3f 1/cm' %
+						 (len(wn), min(wn), max(wn)))
+
+
 class DeepLearn:
 	
 	
@@ -174,64 +180,36 @@ class DeepLearn:
 		#	
 		####################################################################################################
 
+
+		if classify:
+			fitted_model = CellularComponentsClassification()
+		elif miecorr:
+			fitted_model = RMIECorrection()
+		else:
+			raise ValueError("One of classify or miecorr has to be True")
+
+		check_compatible_x(fitted_model, x)
+
+		loaded_model = fitted_model.load()
+
+		if show == True:
+			print(loaded_model.summary())
+
+		print("Loaded model from disk")
+
 		if classify == True:
 
-			if x.shape[1] != 450:
-			
-				raise ValueError('This is a classification problem: Your spectral data needs 450 datapoints in WVN range of 950-1800 1/cm')
-
-			json_file = open(os.path.join(MODELPATH, 'model_weights_classification.json'), 'r')
-
-			loaded_model_json = json_file.read()
-
-			loaded_model = model_from_json(loaded_model_json)
-			
-			if show == True:
-				print(loaded_model.summary())
-			
-			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_classification.best.hdf5"))
-			
-			print("Loaded model from disk")
-			
-			model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+			loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
 			from sklearn.preprocessing import normalize
-			
-
 			trX = normalize(x, axis=1, norm='l2')
 
 			return loaded_model.predict(trX), load_model
 
 		if miecorr == True:
 
-			if x.shape[1] != 450:
-			
-				raise ValueError('This is a regression problem: Your spectral data needs 909 datapoints in WVN range of 950-2300 1/cm')
-			####################################################################################################
-			#	THIS MODEL NEEDS THE FIRST 909 WVN. RANGE FROM 950-2300 WVN 1/cm
-			#	
-			#	
-			#	
-			####################################################################################################x
-
-			json_file = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
-			
-			loaded_model_json = json_file.read()
-
-			loaded_model = model_from_json(loaded_model_json)
-			
-			if show == True:
-				print(loaded_model.summary())
-			
-			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_regression.best.hdf5"))
-			
-			print("Loaded model from disk")
-			
 			loaded_model.compile(loss='mean_squared_error', optimizer='adam')
 
-
-			
-		
 			return loaded_model.predict(x), load_model
 
 	
@@ -271,15 +249,9 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			sm = int(yoh.shape[1])
 			
 			print("training on",sm,"classes")
-			json_file = open(os.path.join(MODELPATH, 'model_weights_classification.json'), 'r')
-			
-			loaded_model_json = json_file.read()
-			
-			loaded_model = model_from_json(loaded_model_json)
-			
-			loaded_model.load_weights(os.path.join(MODELPATH, "model_weights_classification.best.hdf5"))
-			
-			
+
+			fitted_model = CellularComponentsClassification()
+			loaded_model = fitted_model.load()
 			
 			if trainable == False:
 				for layer in loaded_model.layers:
@@ -397,17 +369,9 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 			from keras import models
 			
 			sm = int(y.shape[1])
-			
-			
-			json_filer = open(os.path.join(MODELPATH, 'model_weights_regression.json'), 'r')
-			
-			loaded_model_jsonr = json_filer.read()
-			
-			loaded_modelr = model_from_json(loaded_model_jsonr)
-			
-			loaded_modelr.load_weights(os.path.join(MODELPATH, "model_weights_regression.best.hdf5"))
-			
-			
+
+			fitted_model = RMIECorrection()
+			loaded_modelr = fitted_model.load()
 			
 			if trainable == False:
 				for layer in loaded_modelr.layers:
