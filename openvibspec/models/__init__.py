@@ -29,8 +29,8 @@ class JsonModel:
 
     def load_json(self):
         from keras.models import model_from_json
-        json_file = open(self.JSON, 'r')
-        model_json = json_file.read()
+        with open(self.JSON, 'r') as json_file:
+            model_json = json_file.read()
         model = model_from_json(model_json)
         model.load_weights(self.WEIGHTS)
         return model
