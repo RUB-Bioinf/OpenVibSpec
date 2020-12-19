@@ -22,43 +22,167 @@ import openvibspec.models
 from pathlib import Path
 MODELPATH = Path('openvibspec/models').absolute()
 
-
-
-def randomforest_train(x,y,n_samples=1000, n_features=4,
-                           n_informative=2, n_redundant=0,
-                           random_state=0, shuffle=False,n_jobs=2, save_file_path=str()):
+def prepare_dat2train(x,y, testsize=0.2, random=0, normalising='l2' ):
 	"""
+FUNCTION PREPARING DATA FOR THE USE IN A RANDOM FOREST CLASSIFIER:
+
+	Preparation of the data includes splitting into training and test-set and normalising the data with the sklearn 'StandardScaler'!
+
+
+	Parameters
+	----------
+	x : numpy array (2D)
+			classes per point (as int) with 2 dimensions:  x*y,spectra = shape(), e.g. output of kmeans or similiar clsutering approach
+	y : numpy array with int (1D)
+			classes:  x*y = shape()
+	test_size : float
+			value for the amount of used test-data. This value has to be below 1, given example of '0.2' 
+			indicates that 20% of the data is used for testing, while 80% is used for the purpose of fitting parameters to the model aka train the model
+	random_state : int
+			seed for the 'random_state'
+
+	
+	Returns
+	-------
+	X_train : umpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal (1 - random_state)
+	
+	y_train : numpy array (1D)
+			Corresponding classes to 'X_train'
+	
+	X_test  : numpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal random_state
+
+	y_test  : numpy array (1D)
+			Corresponding classes to 'X_test'
+	
+
+
+	"""
+
+
+	from sklearn.model_selection import train_test_split
+	from sklearn.preprocessing import StandardScaler
+	from sklearn import preprocessing
+	#X_normalized = preprocessing.normalize(X, norm='l2')	
+
+	X_train, X_test, y_train, y_test = train_test_split(np.nan_to_num(preprocessing.normalize(X, norm=normalising)), y, test_size=float(testsize), random_state=int(random))
+	
+
+	#sc = StandardScaler()
+	
+	#X_train = sc.fit_transform(X_train)
+	
+	#X_test = sc.transform(X_test)
+
+	return X_train, X_test, y_train, y_test
+
+
+def randomforest_train(x,y,
+						trees=20,
+						jobs=2, 
+						random=0,
+						save_file_path=str()):
+							#n_estimators=20,
+							#n_samples=250, 
+							#n_features=4,
+                           #n_informative=2, 
+                           #n_redundant=0,
+                           #random_state=0, 
+                           #shuffle=False,
+                           #n_jobs=2, 
+                           
+	"""
+	Parameters
+	----------
+	x : numpy array (2D)
+			X_train from prepare_dat2train() with 2 dimensions:  x*y,spectra = shape(), e.g. output of kmeans or similiar clsutering approach
+	y : numpy array (1D)
+			wavenumbers:  x*y = shape()
+
+	trees : int
+		Number of Trees used in the construction of the tree ensemble
+	
+	jobs : int
+			The number of jobs to run in parallel
+	
+	random: int
+			Controls both the randomness of the bootstrapping of the samples used when building trees
+
+	save_file_path: str() as filename
+
+	
+	Returns
+	-------
+	X_train : umpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal (1 - random_state)
+	
+	y_train : numpy array (1D)
+			Corresponding classes to 'X_train'
+	
+	X_test  : numpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal random_state
+
+	y_test  : numpy array (1D)
+			Corresponding classes to 'X_test'
+
+
+
 
 	"""
 	
 	from sklearn.ensemble import RandomForestClassifier
 	from sklearn.datasets import make_classification
 	
-	clf = RandomForestClassifier(n_jobs=2, random_state=0)
+	clf = RandomForestClassifier(n_estimators=int(trees),n_jobs=int(jobs), random_state=int(random))
 	
-	clf.fit(x, y)
+	rf = clf.fit(x, y)
 
 
 	filename = save_file_path
+	from joblib import dump, load
+	dump(rf, filename)
 	
-	pickle.dump(clf, open(filename, 'wb'))
+	#return x,y ,clf, yhat
+	return rf
+
+
+def randomforest_load_eval(x,y,rf, norm=True, report=True, normalising='l2'):
+	from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+	from joblib import load
+	from sklearn import preprocessing
 	
-	return x,y ,clf
-
-
-def randomforest_load_eval(x,clf):
-	preds = clf.predict(x)
+	clf = load(str(rf)) 
 	
-	return preds, clf
+	if norm == True:
 
-	return x
+		preds = clf.predict(preprocessing.normalize(x, norm=str(normalising)))
+	else:
+		preds = clf.predict(x)
 
-def kmeans(x, c=4):
+	if report ==True:
+		print("CLASSIFICATION REPORT")
+		print(classification_report(y,preds))
+		print("CONFUSION MATRIX")
+		print(confusion_matrix(y,preds))
+		print("ACCURACY SCORE:")
+		print(accuracy_score(y,preds))
+		return preds
+	else:
+	
+		return preds
+
+	#return x
+
+def kmeans(x, c=4, n_jobs=2):
 	from sklearn.cluster import KMeans
 
 	kmeans = KMeans(n_clusters=c)
-	kmeans.fit(x)
-	y = kmeans.predict(x)
+
+	kmeans.fit(np.nan_to_num(x))
+	
+	y = kmeans.predict(np.nan_to_num(x))
+	
 	return y
 
 def hca(x):
@@ -69,9 +193,9 @@ def pca(x,pc):
 	
 	pca = PCA(n_components=pc)
 	
-	pca.fit(x)
+	pca.fit(np.nan_to_num(x))
 	
-	p = pca.transform(x)
+	p = pca.transform(np.nan_to_num(x))
 	
 	return p
 
@@ -85,9 +209,9 @@ def pca_all(x,pc):
 	
 	pca = PCA(n_components=pc)
 	
-	pca.fit(x)
+	pca.fit(np.nan_to_num(x))
 	
-	p = pca.transform(x)
+	p = pca.transform(np.nan_to_num(x))
 	
 	
 	vr = pca.explained_variance_ratio_
@@ -138,19 +262,168 @@ def plot_specs_by_class(x,classes_array,class2plot):
 
 class DeepLearn:
 	
-	
-	"""	
-	HERE YOU CAN FIND ALL PRETRAINED DEEP NEURAL NETWORKS FOR THE PURPOSE OF CLASSIFICATION AND RMIES-CORRECTION OF 
-	FTIR-SPECTROSCOPIC MEASUREMENTS OF TISSUE
-
-	THE USED DATASETS FOR TRAINING WERE ALL BASED ON FFPE (formaldehyde-fixed paraffin-embedded) TISSUE FROM COLON
-	
-	BIOMAX CO1002b/CO722
-
-	FOR FURTHER INFORMATION PLEASE REFER TO Raulf et al.,2019
-
 	"""
+	Deep learning based procedures for the use in spectroscopy.
 
+	Here you can find pretrained deep neural networks, which can be used for classification / RMieS-Correction, or further training.
+	To ensure a smooth use of your data, the spectroscopic specifications of the used training data are shown below:
+		
+		Attributes of the raw data:
+
+			- Spectroscopic data recording was performed on a Agilent Cary 620/670 FTIR Imaging System with 128x128 pixel MCT (Mercury Cadmium Telluride) and FPA for whole slide.
+			- Data recording with 128 scans, results in a wavenumber range of 950 to 3700 cm^1.
+			- With a spectral resolution of ca. 4 cm^1 this resulted in 1428 datapoints on the z-axis.
+			- The pixel has a edge length of 5.65µm.
+			- Per detector field this results in a FOV of ca. 715x715 µm^2.
+
+		Data sources:
+			Tissue was formaldehyde-fixed paraffin-embedded (FFPE) from human colon.
+			- https://www.biomax.us/CO1002b
+			- https://www.biomax.us/tissue-arrays/Colon/CO722
+		
+		You can find further information on data collection in: 
+
+			[1] https://pubs.rsc.org/en/content/articlelanding/fd/2016/c5fd00157a#!divAbstract
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	Components of the class are the following methods:
+
+	DeepLearn.net()
+
+		This method returns the basic structure of the used deep neural networks in form of a graph. 
+		For further use, this structure was bound to the python interfaces of TensorFlow and Keras to allow a permanent integration in most modern workflows.
+		It is currently divided into two main classes. First, the spectral classification and second the RMieS-correction of FTIR spectral data, using a fast deep learning algorithm.
+		
+
+		Specifications of the used training data:
+
+			We used complete uncorrected FTIR data in the range of the fingerprint region between a wavenumber of 950 to 1800 cm^1.
+
+			The groundtruth was based on the segmentation of the used random forest from [1]. 
+			These in turn were created from a multi-step process of pre-segmentation of RMieS-corrected spectra and pathologist annotation. 
+
+			With regard to the learning behaviour of the deep neuronal networks, it could be shown that no new classifier has to be built but 
+			that the existing networks in transfer learning can be used for a variety of applications,  while the false positive number could be significantly reduced. [2]
+			
+
+			The data from groundtruth was processed under the following conditions:
+				
+				- Agilent Resolution Pro Software.
+				- Fourier Transformation using Merz phase correction.
+				- Blackman-Harris-4-term apodization and zero filling of 2.
+
+
+
+
+
+		Specifications for own use:
+
+			The spectral data must be available as 2d-numpy array which is structured as follows:
+
+				x_data = x_axis*y_axis, z_axis 
+
+				It is important for the application to observe the data points on the z-axis
+
+				The classification ( dl.net(x_data,classify=True) ) of the individual RMieS-uncorrected spectra (semantic segmentation) is carried 
+				out on the first 450 wavenumbers between 950 and 1800 cm^1.
+
+				The correction ( dl.net(x_data, miecorr=True) ) of the raw data is done on the first 909 wavenumbers between 950 and 2300 cm^1.
+
+
+
+
+		Examples:
+
+			import openvibspec.ml_ftir as ovml
+
+			dl = ovml.DeepLearn()
+			
+			x_pred, model = dl.net(x_data[:,:450],classify=True)
+
+			x_corr, model = dl.net(x_data[:,:909], miecorr=True)
+
+		Args:
+			x_data(numpy array):
+			
+			classify=False(str): if True it uses the entered data (x_data) to predict previously learned 19 classes on uncorrected FTIR spectra of human colon tissue
+			
+			miecorr=False(str):  if True it uses the entered data (x_data) to predict the regression of the RMieS-Correction Function based on Bassan
+
+		References:
+			[2] Classification of (RMieS) uncorrected FTIR spectra with deep neural networks.
+			https://academic.oup.com/bioinformatics/article-abstract/36/1/287/5521621
+			
+			[3] Deep neural networks for the correction of RMie Scattering in FTIR data.
+			https://arxiv.org/abs/2002.07681	
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	DeepLearn.transfer()
+
+		The transfer function is based on using the data representations discovered by the existing networks for faster learning on new data. 
+		For example, the networks trained on ffpe can be used to create classification networks for other tissues and their laboratory preparation with significantly less data. 
+		For further informations regarding the theoretical part of this procedure, please see reference [2].
+
+		Besides the spectral data a groundtruth as label is needed for the transfer learning.
+
+		Models and weights are automatically saved in the working directory in *h5 and *json format using following naming convention:
+
+
+			model_ptMLP_MieReg_%d-%m-%Y_%I-%M-%S_%p
+
+		
+
+
+
+		Examples:
+			import openvibspec.ml_ftir as ovml
+
+			dl = ovml.DeepLearn()
+
+			dl.transfer(x_data[:5,:909],y_data, batch=10, train_epochs=10, miecorr=True, trainable=False)
+
+			dl.transfer(x_data[:5,:909],x_data_corrected[:5,:909], batch=10, train_epochs=10, miecorr=True, trainable=False)
+		
+		Args:
+
+			x_data(numpy array): 2D array shape(x_axis*y_axis, z_axis)  
+
+			y_data(numpy array): label vector with classes assigned as numbers from 1 to n 
+
+			batch(int): number of examples per batch
+
+			train_epochs(int): number of iterations per training
+
+			add_l(list of int()): possible list for adding layers
+
+			classify=True(str): classification modus
+			
+			miecorr=True(str): regresssion modus
+
+			trainable=False(str): if trainable=True: allows the adjustment of the already loaded weights from the pretrained networks 
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	DeepLearn.load_and_predict()
+
+		This function allows to load and use the trained network which was saved under DeepLearn.transfer()
+	
+
+		Examples:
+
+				import openvibspec.ml_ftir as ovml
+	
+				dl = ovml.DeepLearn()
+				
+				a =  dl.load_and_predict(x_new_data[:,:450],'model_ptMLP_class_DATE_TIME')
+
+		Args:
+
+			x_new_data(numpy array): 2D array shape(x_axis*y_axis, z_axis)  
+			
+			model_ptMLP_class_DATE_TIME(str): model_ptMLP_MieReg_* or model_ptMLP_class_*
+
+			
+	"""
 		
 
 	def net(self,x,classify=False, miecorr=False, predict=False,train=False ,show=False):
@@ -206,7 +479,7 @@ class DeepLearn:
 
 		if miecorr == True:
 
-			if x.shape[1] != 450:
+			if x.shape[1] != 909:
 			
 				raise ValueError('This is a regression problem: Your spectral data needs 909 datapoints in WVN range of 950-2300 1/cm')
 			####################################################################################################
@@ -231,10 +504,10 @@ class DeepLearn:
 			
 			loaded_model.compile(loss='mean_squared_error', optimizer='adam')
 
-
+			from sklearn.preprocessing import normalize
 			
-		
-			return loaded_model.predict(x), load_model
+			trX = normalize(x, axis=1, norm='l2')
+			return loaded_model.predict(trX), load_model
 
 	
 	def transfer(self,x, y, batch,train_epochs,add_l=[], classify=False, miecorr=False, trainable=False ):
