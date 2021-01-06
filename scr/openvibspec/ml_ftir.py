@@ -725,6 +725,69 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 		
 			train_layer()
 
+
+
+
+
+
+def ocsvm(x, noise=0.03, g=0.001,show=False):
+	import numpy as np 
+	from sklearn.svm import OneClassSVM
+
+	svm = OneClassSVM(kernel='rbf', gamma=g, nu=noise)
+	if len(x.shape) ==2:
+		
+		svm.fit(x)
+
+		pred = svm.predict(x)
+
+		a_indx = np.where(pred==-1)
+
+		n_indx = np.where(pred==1)
+
+		anom = x[a_indx]
+
+		filt_dat = x[n_indx]
+	else:
+		print("Spectra must be in 2D array")
+		print()
+		print("n = Axis 0")
+		print("Spectra = Axis 1")
+
+
+	if show == True:
+
+		ax = plt.gca()
+
+		ax.invert_xaxis()
+
+		
+
+		
+		
+
+		plt.style.use('ggplot')
+
+		plt.plot(filt_dat.T, color='blue', label='Normal');
+		plt.plot(anom.T, color='orange', label='Anomalies');
+		
+
+		#plt.legend()
+		plt.show()	
+
+		#plt.savefig(name)
+
+		#plt.clf()
+	return anom, filt_dat
+
+
+
+
+
+
+
+
+
 #--------------------------------------------------
 #--------------------------------------------------
 # LOAD AND SAVE MODELS SKLEARN
