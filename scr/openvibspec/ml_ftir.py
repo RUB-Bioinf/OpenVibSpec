@@ -731,6 +731,42 @@ ALL PARTS OF THE TRANSFER-LEARNING NETWORKS ON FTIR SPECTROSCOPIC DATA
 
 
 def ocsvm(x, noise=0.03, g=0.001,show=False):
+	"""
+FUNCTION PREPARING DATA FOR THE USE IN A RANDOM FOREST CLASSIFIER:
+
+	Preparation of the data includes splitting into training and test-set and normalising the data with the sklearn 'StandardScaler'!
+
+
+	Parameters
+	----------
+	x : numpy array (2D)
+			classes per point (as int) with 2 dimensions:  x*y,spectra = shape(), e.g. output of kmeans or similiar clsutering approach
+	y : numpy array with int (1D)
+			classes:  x*y = shape()
+	test_size : float
+			value for the amount of used test-data. This value has to be below 1, given example of '0.2' 
+			indicates that 20% of the data is used for testing, while 80% is used for the purpose of fitting parameters to the model aka train the model
+	random_state : int
+			seed for the 'random_state'
+
+	
+	Returns
+	-------
+	X_train : umpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal (1 - random_state)
+	
+	y_train : numpy array (1D)
+			Corresponding classes to 'X_train'
+	
+	X_test  : numpy array (2D) of shape x*y,spectra = shape
+			selected data points of size equal random_state
+
+	y_test  : numpy array (1D)
+			Corresponding classes to 'X_test'
+	
+
+
+	"""
 	import numpy as np 
 	from sklearn.svm import OneClassSVM
 
