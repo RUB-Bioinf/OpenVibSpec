@@ -756,6 +756,12 @@ def ocsvm(x, noise=0.03, g=0.001,show=False):
 			selected data points which fall under the assumption of "good" data points aka filtered data
 
 
+
+
+	TODO:
+		Adjusting the axis label and legend of the plot!
+
+
 	"""
 	import numpy as np 
 	from sklearn.svm import OneClassSVM
