@@ -14,6 +14,8 @@ import pickle
 import matplotlib.pyplot as plt
 # python 2.7 from sklearn.cross_validation import train_test_split 
 from sklearn.model_selection import train_test_split
+#from tqdm import tqdm
+
 plt.style.use('ggplot')
 ###########################################
 import sys
@@ -82,7 +84,8 @@ def randomforest_train(x,y,
 						trees=20,
 						jobs=2, 
 						random=0,
-						save_file_path=str()):
+						save_file_path=str(),
+						verbose=1):
 							#n_estimators=20,
 							#n_samples=250, 
 							#n_features=4,
@@ -174,7 +177,34 @@ def randomforest_load_eval(x,y,rf, norm=True, report=True, normalising='l2'):
 
 	#return x
 
-def kmeans(x, c=4, n_jobs=2):
+def kmeans(x, c=4, n_jobs=2,verbose=1):
+	"""
+	Wrapper of the scikit learn Kmeans implementation
+
+	Kmeans: standard clustering approach to vector quantization.
+	https://projecteuclid.org/euclid.bsmsp/1200512992
+
+	Parameters
+	----------
+	x : numpy array (2D)
+			spectroscopic data with 2 dimensions:  x*y,spectra = shape(), e.g. output of kmeans or similiar clsutering approach
+	c : int 
+			number of putative centroids
+
+	n_jobs : int
+			The number of jobs to run in parallel
+	verbose: int
+			provides information about the progress 
+
+	Returns
+	-------
+	y : numpy array (1D) of shape x*y
+			selected data points with cluster affiliation / Corresponding classes
+
+
+	"""
+
+
 	from sklearn.cluster import KMeans
 
 	kmeans = KMeans(n_clusters=c)
