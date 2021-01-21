@@ -84,8 +84,8 @@ def randomforest_train(x,y,
 						trees=20,
 						jobs=2, 
 						random=0,
-						save_file_path=str(),
-						verbose=1):
+						out=0,
+						save_file_path=str()):
 							#n_estimators=20,
 							#n_samples=250, 
 							#n_features=4,
@@ -137,7 +137,7 @@ def randomforest_train(x,y,
 	from sklearn.ensemble import RandomForestClassifier
 	from sklearn.datasets import make_classification
 	
-	clf = RandomForestClassifier(n_estimators=int(trees),n_jobs=int(jobs), random_state=int(random))
+	clf = RandomForestClassifier(n_estimators=int(trees),n_jobs=int(jobs), random_state=int(random), verbose=out)
 	
 	rf = clf.fit(x, y)
 
@@ -177,7 +177,7 @@ def randomforest_load_eval(x,y,rf, norm=True, report=True, normalising='l2'):
 
 	#return x
 
-def kmeans(x, c=4, n_jobs=2,verbose=1):
+def kmeans(x, c=4, jobs=2, out=0):
 	"""
 	Wrapper of the scikit learn Kmeans implementation
 
@@ -207,7 +207,7 @@ def kmeans(x, c=4, n_jobs=2,verbose=1):
 
 	from sklearn.cluster import KMeans
 
-	kmeans = KMeans(n_clusters=c)
+	kmeans = KMeans(n_clusters=c,n_jobs=jobs,verbose=out)
 
 	kmeans.fit(np.nan_to_num(x))
 	
