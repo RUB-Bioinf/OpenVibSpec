@@ -146,13 +146,13 @@ class ImageRegistration:
 		if json = 2:
 			lade pre-json2
 		"""
-		if json = 1:
+		if json == 1:
 
 			affine_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '1_affine_cg.json')
 			
 			affine_params = load_and_validate_params(affine_params_filename)
 		
-		if json = 2:
+		if json == 2:
 		
 			affine_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '2_affine_gd.json')
 			
@@ -188,13 +188,13 @@ class ImageRegistration:
 	def bspline_registration(self, profile):
 		
 
-		if json = 1:
+		if json == 1:
 
 			bspline_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '3_bspline_lbfgs2.json')
 			
 			bspline_params = load_and_validate_params(bspline_params_filename)
 		
-		if json = 2:
+		if json == 2:
 			
 			bspline_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '4_affine_gd.json')
 			
