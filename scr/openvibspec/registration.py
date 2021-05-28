@@ -158,11 +158,11 @@ class ImageRegistration:
 			
 			affine_params = load_and_validate_params(affine_params_filename)
 		
-		else:
-			
-			affine_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', str(self.profile))
-			
-			affine_params = load_and_validate_params(affine_params_filename)
+		#else:
+		#	
+		#	affine_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', str(self.profile))
+		#	
+		#	affine_params = load_and_validate_params(affine_params_filename)
 
 		
 		affine_registrator = SitkRegistratorFromJson(affine_params, ir_gray, he_gray,'test',
@@ -200,11 +200,11 @@ class ImageRegistration:
 			
 			bspline_params = load_and_validate_params(bspline_params_filename)
 
-		else:
-			
-			bspline_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '3_bspline_lbfgs2.json')
-			
-			bspline_params = load_and_validate_params(bspline_params_filename)
+		#else:
+		#	
+		#	bspline_params_filename = os.path.join(os.getcwd(), '..', 'irreg', 'registration', 'schemas', '3_bspline_lbfgs2.json')
+		#	
+		#	bspline_params = load_and_validate_params(bspline_params_filename)
 
 		bspline_registrator = SitkRegistratorFromJson(
 			bspline_params,
@@ -223,5 +223,24 @@ class ImageRegistration:
 		os.path.join(os.getcwd(), '..', 'data', 'landmarks', 'moving_test.csv'),)
 
 		ImagePil.open(os.path.join(os.getcwd(), '..', 'data', 'bspline_results', 'test_tre.png'))
-
+	
+	#def run(self):
+	def run():
+		ir = ImageRegistration()
+		if method == 'affine':
+			ir_gray, ir_gray_im = ir.grayfromIR()
+			he_gray, he_gray_im = ir.grayfromHandE()
+			ir.affine_registration()
+		#else:
+		if method == 'bspline':
+			ir_gray, ir_gray_im = ir.grayfromIR()
+			he_gray, he_gray_im = ir.grayfromHandE()
+			ir.bspline_registration()
 		return
+	
+	
+	
+	
+	
+	if __name__ == '__main__':
+	    ImageRegistration().run()

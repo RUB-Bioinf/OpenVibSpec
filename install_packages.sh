@@ -2,13 +2,15 @@
 #  Original solution via StackOverflow:
 #    http://stackoverflow.com/questions/35802939/install-only-available-packages-using-conda-install-yes-file-requirements-t
 #
-
 #
 #  Install via `conda` directly.
 #  This will fail to install all
 #  dependencies. If one fails,
 #  all dependencies will fail to install.
-#
+#-------------------------------------------------------------------------------------------------------------
+# conda create -n py38 python=3.8
+# source activate py38
+# ------------------------------------------------------------------------------------------------------------
 conda install --yes --file requirements.txt
 
 #
