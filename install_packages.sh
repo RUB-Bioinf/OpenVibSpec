@@ -8,8 +8,8 @@
 #  dependencies. If one fails,
 #  all dependencies will fail to install.
 #-------------------------------------------------------------------------------------------------------------
-# conda create -n py38 python=3.8
-# source activate py38
+conda create -n py38 python=3.8
+source activate py38
 # ------------------------------------------------------------------------------------------------------------
 conda install --yes --file requirements.txt
 
