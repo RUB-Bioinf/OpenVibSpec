@@ -364,6 +364,7 @@ class RawIO():
 	def import_agilent_mosaic(self,file_dir, new_file_name):
 
 
+
 		def get_dtype():
 			return np.dtype('<f')
 
