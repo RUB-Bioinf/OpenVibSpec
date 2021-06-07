@@ -6,6 +6,9 @@ import numpy as np
 import scipy.io as sio 
 import sys
 import os, glob, re
+import math
+import os  # from pathlib import Path  # might want to look into this at some point
+import struct
 ###########################################
 
 def read_mat2py(x):
@@ -169,7 +172,7 @@ class RawIO():
 		
 			ll_sub = []
 			for it in onlyfiles:
-			    ll_sub.append(it.split('[')[1].split(']')[0].split('-')[1].split('_'))
+				ll_sub.append(it.split('[')[1].split(']')[0].split('-')[1].split('_'))
 			
 			
 			table = np.asarray(ll_sub, dtype='i4')   
@@ -258,8 +261,8 @@ class RawIO():
 			
 			return matrices, wwn, wnd, dx, dy, head
 		
-		       
-		         
+			   
+				 
 		m1, wwn, wnd, dx, dy, head = load_tc()           
 		
 		ms1 = m1.swapaxes(1,2)[::-1]  
@@ -337,7 +340,7 @@ class RawIO():
 
 			hf = h5py.File(str(new_file_name)+'.h5', 'w')
 			hf.create_dataset('HyperSpecCube', data=out, compression="gzip", compression_opts=6)
-			hf.create_dataset('WVN', data=wwn, compression="gzip", compression_opts=6)
+			hf.create_dataset('WVN', data=wvn, compression="gzip", compression_opts=6)
 			#hf.create_dataset('FPA_Size', data=dx, compression="gzip", compression_opts=4)
 			#hf.create_dataset('header', data=str(head), compression="gzip", compression_opts=4)
 			hf.close()
@@ -354,5 +357,201 @@ class RawIO():
 
 
 
+#-----------------------------------------------------------------------#
+# IMPORT RAW AGILENT DATA FROM WITHIN A DATA DIRECTORY
+#-----------------------------------------------------------------------#
 
-		return
+	def import_agilent_mosaic(self,file_dir, new_file_name):
+
+
+		def get_dtype():
+			return np.dtype('<f')
+
+
+		def read_raw_agilent(file_dir):
+			from os import listdir
+			import numpy as np
+			from os.path import isfile, join
+
+
+			all_files = [f for f in ([os.path.join(file_dir, fi) for fi in os.listdir(file_dir)]) if isfile(join(file_dir, f))] #f for f in listdir(file_dir) if isfile(join(file_dir, f))]
+			dms_files = list(filter(lambda x:x.endswith((".dms")), all_files))
+
+			return dms_files
+
+
+		def isreadable(filename=None):
+			# Check filename is provided.
+			if filename is not None:
+				# Check file extension.
+				fname = os.path.basename(filename)
+				(fstub, fext) = os.path.splitext(fname)
+				if fext.lower() not in (".dmd", ".drd", ".dms", ".dmt"):
+					return False
+				# Additional tests here
+				# Passed all available tests so we can read this file
+				return True
+			else:
+				return False
+
+
+		def _readwinint32(binary_file):
+			return int.from_bytes(binary_file.read(4), byteorder='little')
+
+		def _readwindouble(binary_file):
+			return struct.unpack('<d', binary_file.read(8))[0]
+
+		def _readtile(filename, numberofpoints, fpasize):
+			tile = np.memmap(filename, dtype=get_dtype(), mode='r')
+			# skip the (unknown) header
+			tile = tile[255:]
+			tile = np.reshape(tile, (numberofpoints, fpasize, fpasize))
+			# tile = xr.DataArray(tile)
+			return tile
+
+		def _getwavenumbersanddate(fpath,fstub):
+			dmtfilename = os.path.join(fpath, (fstub + ".dmt"))
+			with open(dmtfilename, "rb") as binary_file:
+				binary_file.seek(2228, os.SEEK_SET)
+				startwavenumber = _readwinint32(binary_file)
+				# print(self.startwavenumber)
+				binary_file.seek(2236, os.SEEK_SET)
+				numberofpoints = _readwinint32(binary_file)
+				# print(self.numberofpoints)
+				binary_file.seek(2216, os.SEEK_SET)
+				wavenumberstep = _readwindouble(binary_file)
+				# print(self.wavenumberstep)
+
+				stopwavenumber = startwavenumber + (wavenumberstep * numberofpoints)
+
+				wavenumbers = np.arange(1, numberofpoints + startwavenumber)
+				wavenumbers = wavenumbers * wavenumberstep
+				wavenumbers = np.delete(wavenumbers, range(0, startwavenumber - 1))
+
+				# # read in the whole file (it's small) and regex it for the acquisition date/time
+				# binary_file.seek(0, os.SEEK_SET)
+				# contents = binary_file.read()
+				# regex = re.compile(b"Time Stamp.{44}\w+, (\w+) (\d\d), (\d\d\d\d) (\d\d):(\d\d):(\d\d)")
+				# matches = re.match(regex, contents)
+				# matches2 = re.match(b'(T)', contents)
+				return numberofpoints, wavenumbers
+
+		def _getfpasize(fpath, fstub, numberofpoints):
+			tilefilename = os.path.join(fpath, (fstub + "_0000_0000.dmd"))
+			tilesize = os.path.getsize(tilefilename)
+			data = tilesize - (255 * 4)  # remove header
+			data = data / numberofpoints
+			data = data / 4  # sizeof float
+			fpasize = int(math.sqrt(data))  # fpa size likely to be 64 or 128 pixels square
+			return fpasize
+
+		def _xtiles(fpath,fstub):
+			finished = False
+			counter = 0
+			while not finished:
+				tilefilename = os.path.join(fpath, (fstub + "_{:04d}_0000.dmd".format(counter)))
+				if not os.path.exists(tilefilename):
+					return counter
+				else:
+					counter += 1
+			return counter
+
+		def _ytiles(fpath,fstub):
+			finished = False
+			counter = 0
+			while not finished:
+				tilefilename = os.path.join(fpath, (fstub + "_0000_{:04d}.dmd".format(counter)))
+				if not os.path.exists(tilefilename):
+					return counter
+				else:
+					counter += 1
+			return counter
+
+		def read(filename=None):
+			"""ToDo: If filename is None, open a dialog box"""
+			if isreadable(filename):
+				fpath = os.path.dirname(filename)
+				fname = os.path.basename(filename)
+				(fstub, fext) = os.path.splitext(fname)
+
+				#print(fname)
+				#print(fpath)
+				#print(fstub)
+				#print(fext)
+
+				# Read the .dmt file to get the wavenumbers and date of acquisition
+				# Generate the .dmt filename
+				numberofpoints, wavenumbers =_getwavenumbersanddate(fpath,fstub)
+				fpasize = _getfpasize(fpath, fstub, numberofpoints)
+
+				xtiles = _xtiles(fpath,fstub)
+				ytiles = _ytiles(fpath,fstub)
+
+				numxpixels = fpasize * xtiles
+				numypixels = fpasize * ytiles
+
+				alldata = np.empty((numberofpoints, numypixels, numxpixels), dtype=get_dtype())
+
+				ystart = 0
+				for y in reversed(range(ytiles)):
+					ystop = ystart + fpasize
+
+					xstart = 0
+					for x in (range(xtiles)):
+						xstop = xstart + fpasize
+
+						tilefilename = os.path.join(fpath, (fstub + "_{:04d}_{:04d}.dmd".format(x, y)))
+						tile = _readtile(tilefilename,numberofpoints, fpasize)
+						# tile = da.from_delayed(tile, (self.numberofpoints, self.fpasize, self.fpasize), self.datatype)
+						# tile = xr.DataArray(tile)
+
+						alldata[:, ystart:ystop, xstart:xstop] = tile
+
+						xstart = xstop
+					ystart = ystop
+
+
+				alldata = np.fliplr(alldata)
+				alldata =np.transpose(alldata,(1,2,0)) #from (z,x,y) to (x,y,z)
+
+
+				info = {'filename': filename,
+						'xpixels': numxpixels,
+						'ypixels': numypixels,
+						'xtiles': xtiles,
+						'ytiles': ytiles,
+						'numpts': numberofpoints,
+						'fpasize': fpasize
+						}
+				# kwargs consists of: xlabel, ylabel, xdata, ydata, info.
+				return dict(ydata=alldata, ylabel='absorbance',
+							xdata=wavenumbers, xlabel='wavenumbers (cm-1)',
+							info=info)
+
+
+		def save_agent_mosaic(out, wvn):
+
+			import h5py
+			import gzip,bz2
+
+			hf = h5py.File(str(new_file_name)+'.h5', 'w')
+			hf.create_dataset('HyperSpecCube', data=out, compression="gzip", compression_opts=6)
+			hf.create_dataset('WVN', data=wvn, compression="gzip", compression_opts=6)
+			#hf.create_dataset('FPA_Size', data=dx, compression="gzip", compression_opts=4)
+			#hf.create_dataset('header', data=str(head), compression="gzip", compression_opts=4)
+			hf.close()
+			return
+
+
+		def save_overview_image(out):
+			import scipy.misc as sm
+
+			sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
+			return
+
+
+		dms_files = read_raw_agilent(file_dir)
+		dict_d = read(dms_files[0])
+		save_agent_mosaic(dict_d.get('ydata'),dict_d.get('xdata'))
+		save_overview_image(dict_d.get('ydata'))
+
