@@ -373,10 +373,8 @@ class RawIO():
 			import numpy as np
 			from os.path import isfile, join
 
-
 			all_files = [f for f in ([os.path.join(file_dir, fi) for fi in os.listdir(file_dir)]) if isfile(join(file_dir, f))] #f for f in listdir(file_dir) if isfile(join(file_dir, f))]
 			dms_files = list(filter(lambda x:x.endswith((".dms")), all_files))
-
 			return dms_files
 
 
@@ -473,11 +471,6 @@ class RawIO():
 				fpath = os.path.dirname(filename)
 				fname = os.path.basename(filename)
 				(fstub, fext) = os.path.splitext(fname)
-
-				#print(fname)
-				#print(fpath)
-				#print(fstub)
-				#print(fext)
 
 				# Read the .dmt file to get the wavenumbers and date of acquisition
 				# Generate the .dmt filename
