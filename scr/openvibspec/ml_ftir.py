@@ -89,12 +89,12 @@ def randomforest_train(x,y,
 							#n_estimators=20,
 							#n_samples=250, 
 							#n_features=4,
-                           #n_informative=2, 
-                           #n_redundant=0,
-                           #random_state=0, 
-                           #shuffle=False,
-                           #n_jobs=2, 
-                           
+						   #n_informative=2, 
+						   #n_redundant=0,
+						   #random_state=0, 
+						   #shuffle=False,
+						   #n_jobs=2, 
+						   
 	"""
 	Parameters
 	----------
@@ -754,6 +754,136 @@ class DeepLearn:
 
 		
 			train_layer()
+
+	def gan_ir_upsample(self,lst_class, lst_ir):
+		"""
+		
+	
+	
+		"""
+	
+	
+	
+	
+	
+		import matplotlib.pyplot as plt
+		import numpy as np
+		import os
+		import re
+		import scipy.io as sio
+		import tensorflow as tf
+		#import torchvision as tv
+		
+		
+		def convert_data_2_tensor(lst_class, lst_ir, BATCH_SIZE):
+			"""Convert images from numpy array to an TensorFlow dataset object."""
+			tensor_class = tf.convert_to_tensor(lst_class)
+			tensor_ir = tf.convert_to_tensor(lst_ir)
+		
+			dataset = tf.data.Dataset.from_tensor_slices((tensor_class, tensor_ir))
+			dataset = dataset.batch(BATCH_SIZE)
+			return dataset
+		
+		
+		def read_data_2_array_np(path_to_class, path_to_ir):
+			"""Read data from filesystem to array and return the array lists.
+		
+			Will be further proceed by the method 'convert_data_2_tensor'.
+			"""
+			lst_class = []
+			for file_path in sorted_nicely(os.listdir(path_to_class)):
+				img_class = sio.loadmat(path_to_class + "/" + file_path)
+				img_class = img_class['multi'].transpose((2, 0, 1))
+				img_class = img_class.astype(dtype=np.float32)
+				img_class = np.divide(img_class, 255)
+				lst_class.append(img_class[(1, 2, 3), :, :])
+			lst_ir = []
+			for file_path in sorted_nicely(os.listdir(path_to_ir)):
+				img_ir = sio.loadmat(path_to_ir + "/" + file_path)
+				img_ir = img_ir['xx'].transpose((2, 0, 1))
+				img_ir = img_ir.astype(dtype=np.float64)
+				lst_ir.append(img_ir[0:1, :, :])
+			return lst_class, lst_ir
+		
+		
+		def read_data_2_array_tv(path_to_class, path_to_ir):
+			"""Read data from filesystem to array and return the array lists.
+		
+			Will be further proceed by the method 'convert_data_2_tensor'.
+			"""
+			lst_class = []
+			for file_path in sorted_nicely(os.listdir(path_to_class)):
+				img_class = sio.loadmat(path_to_class + "/" + file_path)
+				normalize_in_torch = tv.transforms.ToTensor()
+				img_class = normalize_in_torch(img_class['multi']).numpy() # normalize image
+				lst_class.append(img_class[(1,2,3),:,:])
+			lst_ir = []
+			for file_path in sorted_nicely(os.listdir(path_to_ir)):
+				img_ir = sio.loadmat(path_to_ir + "/" + file_path)
+				normalize_in_torch = tv.transforms.ToTensor()
+				img_ir = normalize_in_torch(img_ir['xx']).numpy()
+				lst_ir.append(img_ir[0:1,:,:])
+			return lst_class, lst_ir
+		
+		
+		def show_img_mat(path):
+			"""Print image as a matplot-plot."""
+			fig = plt.figure()
+			data = sio.loadmat(path)
+			x = data['gen']
+			x = x-x.min() #shift/normalize  x_min to be 0 and x_max to be 1
+			x = x/x.max()
+			plt.title(path)
+			plt.imshow(x[0][0], cmap='binary')
+			plt.show()
+		
+		
+		def sorted_nicely( l ):
+			""" Sort the given iterable in the way that humans expect."""
+			convert = lambda text: int(text) if text.isdigit() else text
+			alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+			return sorted(l, key = alphanum_key)
+		
+		
+		def gan(lst_class_files, lst_ir_files, MODEL_LOAD_PATH="out/generator_model", BATCH_SIZE_TEST=1):
+			"""Run GeneratorUNet (Main Method)."""
+			# Convert data to an TensorFlow dataset
+			dataset = convert_data_2_tensor(lst_class_files, lst_ir_files, BATCH_SIZE_TEST)
+		
+			# Read saved TensorFlow model (pb file)
+			generator = tf.keras.models.load_model(
+				filepath=MODEL_LOAD_PATH,
+			)
+		
+			loop_count = 1
+			iterator = iter(dataset)
+			for img_class, img_ir in iterator:
+				img_class = tf.transpose(img_class, perm=(0, 2, 3, 1))
+				img_ir = tf.transpose(img_ir, perm=(0, 2, 3, 1))
+				_out_img = generator((
+					img_ir,
+					img_class))
+				_out_img_mat = tf.make_ndarray(tf.make_tensor_proto(_out_img))
+				_out_img_mat = np.transpose(_out_img_mat, [0, 3, 1, 2])
+				sio.savemat('out/tf_generated_imgs/{}.mat'.format(loop_count), dict({"gen": _out_img_mat}))
+				#show_img_mat('out/tf_generated_imgs/{}.mat'.format(loop_count))
+				loop_count = loop_count + 1
+		
+		
+		#if __name__ == "__main__":
+			# Read data to an array
+		lst_class_files_np, lst_ir_files_np = read_data_2_array_np("datasets/Class", "datasets/IR")
+		
+		lst_class_files_tv, lst_ir_files_tv = read_data_2_array_tv("datasets/Class", "datasets/IR")
+		
+		if np.array_equal(np.asarray(lst_class_files_np), np.asarray(lst_class_files_tv)):
+			print("True")
+		gan(lst_class_files_np, lst_ir_files_np)
+
+
+		return
+
+
 
 
 
