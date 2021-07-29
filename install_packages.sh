@@ -19,5 +19,7 @@ conda install --yes --file requirements.txt
 #  requirements.txt file.
 #
 while read requirement; do conda install --yes $requirement; done < requirements.txt
-# 
+# Registration Problem
 pip install git+https://github.com/BioSpecNorway/IRmHiRegistration.git
+# MRMR 4 best_practices in (Raman)Spectrsocopic DL
+pip install git+https://github.com/smazzanti/mrmr
