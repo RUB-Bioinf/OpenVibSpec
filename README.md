@@ -23,7 +23,7 @@ At this point, a distinction can be made between the fields of the established M
 
 ![alt text](/docs/assets/img/ir_workflow_MieCorr.png)
 
-#### Mashine Learning Models with Mie-Correction
+#### Machine Learning Models with Mie-Correction
 In short:
 1) After the measurement, the raw data is imported into OpenVibSpec.
 2) The correction of the Mie scattering in OpenVibSpec. 
