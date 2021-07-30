@@ -25,5 +25,18 @@ At this point, a distinction can be made between the fields of the established M
 
 In short:
 1) After the measurement, the raw data is imported into OpenVibSpec.
-2) The correction of the Mie scattering in OpenVibSpec.
-3) Selection of the training data and the training of the machine learning algorithms in OpenVibSpec. 
+2) The correction of the Mie scattering in OpenVibSpec. 
+3) Selection of the training data and the training of the machine learning algorithms in OpenVibSpec (mostly Random Forest).
+4) Validation of the training data and the models on independent data.
+
+
+The literature on Mie-corrected data analysis in biospectroscopy, predominantly shows the use of Random Forest class classifiers after correction and selection of the training data. Currently, data can be imported into OpenVibSpec via the HDF5 and Matlab interfaces. Further, the raw data import is currently available for the Agilent FTIR and the DRS Daylight Solutions QCL spectroscopes.
+
+
+#### References
+[1]: https://www.nature.com/articles/nprot.2014.110
+[2]: https://onlinelibrary.wiley.com/doi/abs/10.1002/jbio.201200132
+[3]: https://pubs.rsc.org/en/content/articlelanding/2010/an/b921056c/unauth
+[4]
+[5]
+[6]
