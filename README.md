@@ -22,3 +22,8 @@ OpenVibSpec offers the possibility to handle everything from data import of raw 
 At this point, a distinction can be made between the fields of the established ML models and the new DL models. The former is based on the model-based correction of Mie scattering. The Mie correction based worflow is based on the fundamental paradigm of making the data understandable to the individual domain experts from spectroscopy. There are several options for correcting Mie scattering, all of which we would like to introduce. But first, for an overview, see Fig.1., here we see what the workflow is based on. 
 
 ![alt text](/docs/assets/img/ir_workflow_MieCorr.png)
+
+In short:
+1) After the measurement, the raw data is imported into OpenVibSpec.
+2) The correction of the Mie scattering in OpenVibSpec.
+3) Selection of the training data and the training of the machine learning algorithms in OpenVibSpec. 
