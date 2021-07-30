@@ -34,9 +34,9 @@ The literature on Mie-corrected data analysis in biospectroscopy, predominantly 
 
 
 #### References
-[1]: https://www.nature.com/articles/nprot.2014.110
-[2]: https://onlinelibrary.wiley.com/doi/abs/10.1002/jbio.201200132
-[3]: https://pubs.rsc.org/en/content/articlelanding/2010/an/b921056c/unauth
+[1](https://www.nature.com/articles/nprot.2014.110)
+[2](https://onlinelibrary.wiley.com/doi/abs/10.1002/jbio.201200132)
+[3](https://pubs.rsc.org/en/content/articlelanding/2010/an/b921056c/unauth)
 [4]
 [5]
 [6]
