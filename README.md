@@ -14,6 +14,7 @@ With strong scientific partners from the USA, England, Norway and Germany we wan
 - Chemical Imaging and Structures Laboratory, University of Illinois at Urbana-Champaign, (http://chemimage.illinois.edu/group.html)
 - Leibniz IPHT, Jena, (https://www.leibniz-ipht.de/en/departments/photonic-data-science-2/)
 - Quasar (https://quasar.codes/)
+- Biomedical Analysis Group, National Academy of Sciences of Belarus, (https://image.org.by/)
 ### Methods and models which are included
 
 OpenVibSpec offers the possibility to handle everything from data import of raw measurements to ML/DL based data analysis in one ecosystem. We draw on established groundwork in the Python ecosystem to guarantee the best possible longevity.
@@ -35,13 +36,18 @@ The literature on Mie-corrected data analysis in biospectroscopy, predominantly 
 
 #### Deep Learning Models without Mie-Correction
 
-The second major area includes the latest methods around deep learning. Here, the immense amount of data could be used to generate models and approaches that do not require direct correction of the IR spectroscopic data. This makes the model as a whole transferable and also significantly faster to analyse. 
+The second major area includes the latest methods around deep learning. Here, the immense amount of data could be used to generate models and approaches that do not require direct correction of the IR spectroscopic data. This makes the model as a whole transferable and also significantly faster to analyse. This gives us two possible workflows for segmenting DNNs in Openvibspec, as shown in Figure 2.
+
+Option A) shows that there are FTIR spectra based on the FFPE embedding of tissue and originating from the entity colon that can be classified in this way.
+
+Possibility B) shows the procedure e.g. for spectra from other entities or embeddings like Fresh Frozen Tissue. This results in a short transfer learning stage to make the models transferable for the own data.
+
+![alt text](/docs/assets/img/github_workflowDL.png)
 
 
 #### References
 [1](https://www.nature.com/articles/nprot.2014.110)
 [2](https://onlinelibrary.wiley.com/doi/abs/10.1002/jbio.201200132)
 [3](https://pubs.rsc.org/en/content/articlelanding/2010/an/b921056c/unauth)
-[4]
-[5]
-[6]
+[4](https://academic.oup.com/bioinformatics/article/36/1/287/5521621?login=true)
+[5](https://onlinelibrary.wiley.com/doi/full/10.1002/jbio.202000385)
