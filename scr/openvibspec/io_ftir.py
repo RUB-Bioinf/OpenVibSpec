@@ -125,19 +125,44 @@ def load_import(name):
 
 
 
-#-----------------------------------------------------------------------#
-# IMPORT RAW QCL DATA FROM WITHIN A DATA DIRECTORY
-#
-#
-#
-#
-#-----------------------------------------------------------------------#
-#import os, glob, re
-#import openvibspec as ov
-#import numpy as np
+
+
 class RawIO():
+	"""
+	
+	#-----------------------------------------------------------------------#
+	# IMPORT RAW DATA FROM WITHIN A DATA DIRECTORY
+	#
+	#
+	#
+	#
+	#-----------------------------------------------------------------------#
+
+
+	These Methods load all individual tiles from the spectroscopes and save them in the specified directory 
+
+	under the specified name as a new *.h5 file. The file created in this way is packed at the current time using gzip, 
+
+	which affects the runtime. At a later time, this parameter will be freely selectable in OpenVibSpec.
+
+	Automatically, the spectral mean image is saved in the same folder as a form of verification for the spectroscopist.
+
+
+	#-----------------------------------------------------------------------#
+	#-----------------------------------------------------------------------#
+
+	"""
+
+
 	
 	def import_raw_qcl(self,file_dir, new_file_name):
+		"""
+
+		PARAMS:
+			file_dir(path): directory with the specific files (ONLY THE FILES!)
+			new_file_name(string): name for the new *.h5 file
+
+		"""
 
 
 		#self.file_dir = file_dir
@@ -241,7 +266,7 @@ class RawIO():
 
 			sorted_ids = cut_info(ll,lon,file_dir)
 			
-			wwn, wnd, dx, dy, head = info()
+			wvn, wnd, dx, dy, head = info()
 			
 			
 			
@@ -259,11 +284,11 @@ class RawIO():
 			del l
 		
 			
-			return matrices, wwn, wnd, dx, dy, head
+			return matrices, wvn, wnd, dx, dy, head
 		
 			   
 				 
-		m1, wwn, wnd, dx, dy, head = load_tc()           
+		m1, wvn, wnd, dx, dy, head = load_tc()           
 		
 		ms1 = m1.swapaxes(1,2)[::-1]  
 		
@@ -315,7 +340,7 @@ class RawIO():
 		out = create_mosaic_arrofarrs(ms1)	
 		del ms1
 
-		def save_mosaic(out):
+		def save_mosaic(out, wvn):
 
 			import h5py
 			import gzip,bz2
@@ -347,13 +372,53 @@ class RawIO():
 			return
 
 		def save_overview_image(out):
-			import scipy.misc as sm
-			
-			sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
+			# out after update
+			# import scipy.misc as sm
+			import imageio
+			#img_uint8 = out.astype(np.uint8)
+			#imageio.imwrite(str(new_file_name)+'.png',img_uint8.mean(axis=2))
+			imageio.imwrite(str(new_file_name)+'.png',out.mean(axis=2))
+			# sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
 			
 			return
-		save_mosaic(out)
+
+		save_mosaic(out,wvn)
 		save_overview_image(out)
+
+
+
+
+#--------------------TODO------------------------------------------------------
+#------------------------------------------------------------------------------
+# THIS HAPPENS WHEN THERE IS MORE IN THE DIR THAN IT SHOULD BE
+# 	WE NEED BETTER ERROR DESRCIPTION HERE
+#------------------------------------------------------------------------------
+#	---------------------------------------------------------------------------
+#	IndexError                                Traceback (most recent call last)
+#	<timed eval> in <module>
+#	
+#	~/cdwork/openvibspec/OpenVibSpec/scr/openvibspec/io_ftir.py in import_raw_qcl(self, file_dir, new_file_name)
+#	    264 
+#	    265 
+#	--> 266                 m1, wvn, wnd, dx, dy, head = load_tc()
+#	    267 
+#	    268                 ms1 = m1.swapaxes(1,2)[::-1]
+#	
+#	~/cdwork/openvibspec/OpenVibSpec/scr/openvibspec/io_ftir.py in load_tc()
+#	    240                         ll,lon,pf = read_raw_qcl()
+#	    241 
+#	--> 242                         sorted_ids = cut_info(ll,lon,file_dir)
+#	    243 
+#	    244                         wvn, wnd, dx, dy, head = info()
+#	
+#	~/cdwork/openvibspec/OpenVibSpec/scr/openvibspec/io_ftir.py in cut_info(onlyfiles, itsn, file_dir)
+#	    173                         ll_sub = []
+#	    174                         for it in onlyfiles:
+#	--> 175                                 ll_sub.append(it.split('[')[1].split(']')[0].split('-')[1].split('_'))
+#	    176 
+#	    177 
+#	
+#	IndexError: list index out of range
 
 
 
@@ -362,6 +427,13 @@ class RawIO():
 #-----------------------------------------------------------------------#
 
 	def import_agilent_mosaic(self,file_dir, new_file_name):
+		"""
+
+		PARAMS:
+			file_dir(path): directory with the specific files (ONLY THE FILES!)
+			new_file_name(string): name for the new *.h5 file
+
+		"""
 
 
 
@@ -538,9 +610,16 @@ class RawIO():
 
 
 		def save_overview_image(out):
-			import scipy.misc as sm
 
-			sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
+			# out after update
+			# import scipy.misc as sm
+			# sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
+
+			import imageio
+			#img_uint8 = out.astype(np.uint8)
+			#imageio.imwrite(str(new_file_name)+'.png',img_uint8.mean(axis=2))
+			imageio.imwrite(str(new_file_name)+'.png',out.mean(axis=2))
+			# sm.imsave(str(new_file_name)+'.png',out.mean(axis=2))
 			return
 
 
