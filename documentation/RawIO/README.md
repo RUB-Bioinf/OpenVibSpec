@@ -21,4 +21,6 @@ help(rio.import_agilent_mosaic)
 
 ```
 
+In the end your directory will look like the one on the image below. Before the import function was executed, only the .mat files were in the folder. When the raw data import is completed, the file with the data is added, here called "newdat_test.h5", and the overview image is added.
 
+![dir RawIO](/documentation/RawIO/workflow.png) 
