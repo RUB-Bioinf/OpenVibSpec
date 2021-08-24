@@ -45,7 +45,7 @@ FUNCTION PREPARING DATA FOR THE USE IN A RANDOM FOREST CLASSIFIER:
 
 	
 	Returns
-	-------
+	-------s
 	X_train : umpy array (2D) of shape x*y,spectra = shape
 			selected data points of size equal (1 - random_state)
 	
@@ -84,7 +84,7 @@ def randomforest_train(x,y,
 						trees=20,
 						jobs=2, 
 						random=0,
-						out=0,
+						out=1,
 						save_file_path=str()):
 							#n_estimators=20,
 							#n_samples=250, 
@@ -177,7 +177,7 @@ def randomforest_load_eval(x,y,rf, norm=True, report=True, normalising='l2'):
 
 	#return x
 
-def kmeans(x, c=4, jobs=2, out=0):
+def kmeans(x, c=4, jobs=2, out=1):
 	"""
 	Wrapper of the scikit learn Kmeans implementation
 
