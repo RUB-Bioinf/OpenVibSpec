@@ -68,7 +68,7 @@ FUNCTION PREPARING DATA FOR THE USE IN A RANDOM FOREST CLASSIFIER:
 	from sklearn import preprocessing
 	#X_normalized = preprocessing.normalize(X, norm='l2')	
 
-	X_train, X_test, y_train, y_test = train_test_split(np.nan_to_num(preprocessing.normalize(X, norm=normalising)), y, test_size=float(testsize), random_state=int(random))
+	X_train, X_test, y_train, y_test = train_test_split(np.nan_to_num(preprocessing.normalize(x, norm=normalising)), y, test_size=float(testsize), random_state=int(random))
 	
 
 	#sc = StandardScaler()
@@ -177,7 +177,50 @@ def randomforest_load_eval(x,y,rf, norm=True, report=True, normalising='l2'):
 
 	#return x
 
-def kmeans(x, c=4, jobs=2, out=1):
+def dec_bound_plot(X_train, X_test,y_train, y_test, forest):
+	"""
+	This function provides the decision boundary plot.
+	In case of a multidimensional Input Classifier you need to specify the certain features.
+	Now every feature except the first 2 features are filtered
+
+	TODO: Specify Filter-List
+
+	"""
+	import matplotlib.pyplot as plt
+	from mlxtend.plotting import plot_decision_regions
+	#from sklearn.decomposition import PCA
+
+	
+	
+	
+ 
+	X_combined = np.vstack((X_train, X_test))
+	y_combined = np.hstack((y_train, y_test))
+
+	#pca = PCA(n_components = 2)
+	#X_train2 = pca.fit_transform(X_combined)
+	
+	 
+	#
+	# plot_decision_regions function takes "forest" as classifier
+	#
+	feature_values = {i:1 for i in range(2, X_combined.shape[1])}  
+	feature_width = {i:1 for i in range(2, X_combined.shape[1])}  
+
+	fig, ax = plt.subplots(figsize=(7, 7))
+	plot_decision_regions(X_combined, y_combined, clf=forest,
+						#feature_index=[0,2],
+						filler_feature_values=feature_values,
+						filler_feature_ranges=feature_width,
+						res=0.02, legend=2, ax=ax)
+	#plt.xlabel('petal length [cm]')
+	#plt.ylabel('petal width [cm]')
+	#plt.legend(loc='upper left')
+	#plt.tight_layout()
+	plt.show()
+	return
+
+def kmeans(x, c=4, jobs=2, out=15):
 	"""
 	Wrapper of the scikit learn Kmeans implementation
 
