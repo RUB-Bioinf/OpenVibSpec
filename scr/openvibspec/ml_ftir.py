@@ -220,6 +220,16 @@ def dec_bound_plot(X_train, X_test,y_train, y_test, forest):
 	plt.show()
 	return
 
+
+
+
+
+
+
+
+
+	
+
 def kmeans(x, c=4, jobs=2, out=15):
 	"""
 	Wrapper of the scikit learn Kmeans implementation
@@ -798,8 +808,17 @@ class DeepLearn:
 		
 			train_layer()
 
-	def gan_ir_upsample(self,lst_class, lst_ir):
+	#def gan_ir_upsample(self,lst_class, lst_ir):
+	#def gan_ir_upsample(lst_class, lst_ir):
+	#def gan_ir_upsample(path_class, path_ir):
+	def gan_ir_upsample(self,path_class, path_ir):
 		"""
+		INPUT:
+				lst_class: python path containing groundtruth maps
+				lst_ir:    python path containing IR images
+	
+		OUTPUT:
+	
 		
 	
 	
@@ -848,7 +867,7 @@ class DeepLearn:
 				lst_ir.append(img_ir[0:1, :, :])
 			return lst_class, lst_ir
 		
-		
+		# obsolete
 		def read_data_2_array_tv(path_to_class, path_to_ir):
 			"""Read data from filesystem to array and return the array lists.
 		
@@ -888,7 +907,14 @@ class DeepLearn:
 			return sorted(l, key = alphanum_key)
 		
 		
-		def gan(lst_class_files, lst_ir_files, MODEL_LOAD_PATH="out/generator_model", BATCH_SIZE_TEST=1):
+		def gan(lst_class_files, lst_ir_files, MODEL_LOAD_PATH=str(MODELPATH), BATCH_SIZE_TEST=1):
+			
+			#---------------------------------------
+			#  CHANGE MODEL DIRECTORY TO GLOBAL VAR. 
+			#---------------------------------------
+	
+	
+	
 			"""Run GeneratorUNet (Main Method)."""
 			# Convert data to an TensorFlow dataset
 			dataset = convert_data_2_tensor(lst_class_files, lst_ir_files, BATCH_SIZE_TEST)
@@ -908,22 +934,30 @@ class DeepLearn:
 					img_class))
 				_out_img_mat = tf.make_ndarray(tf.make_tensor_proto(_out_img))
 				_out_img_mat = np.transpose(_out_img_mat, [0, 3, 1, 2])
-				sio.savemat('out/tf_generated_imgs/{}.mat'.format(loop_count), dict({"gen": _out_img_mat}))
+				sio.savemat('higher_res{}.mat'.format(loop_count), dict({"gen": _out_img_mat}))
+	
+				#------------------------------------------------------------
+				# TODO change to internal OpenVibSpec fromat instead of *.mat
+				#------------------------------------------------------------
+	
+	
 				#show_img_mat('out/tf_generated_imgs/{}.mat'.format(loop_count))
 				loop_count = loop_count + 1
 		
 		
 		#if __name__ == "__main__":
-			# Read data to an array
-		lst_class_files_np, lst_ir_files_np = read_data_2_array_np("datasets/Class", "datasets/IR")
+			# Read data to an list and convert 2 array
+	
+		lst_class_files_np, lst_ir_files_np = read_data_2_array_np(str(path_class), str(path_ir))
+		# Obsolete because we changend to numpy instead of torch
+		# lst_class_files_tv, lst_ir_files_tv = read_data_2_array_tv("datasets/Class", "datasets/IR")
 		
-		lst_class_files_tv, lst_ir_files_tv = read_data_2_array_tv("datasets/Class", "datasets/IR")
+		#if np.array_equal(np.asarray(lst_class_files_np), np.asarray(lst_class_files_tv)):
+		#	print("True")
 		
-		if np.array_equal(np.asarray(lst_class_files_np), np.asarray(lst_class_files_tv)):
-			print("True")
 		gan(lst_class_files_np, lst_ir_files_np)
-
-
+	
+	
 		return
 
 
