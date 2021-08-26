@@ -220,8 +220,35 @@ def dec_bound_plot(X_train, X_test,y_train, y_test, forest):
 	plt.show()
 	return
 
+#------------------------------------------------------
+#
+#	Features from RF
+#
+#------------------------------------------------------
 
-
+#	TODO: install
+#def get_rf_features(rf, wvn, X_test=None, y_test=None, method=1):
+#	"""
+#
+#
+#	"""
+#	if method==1:
+#		plt.barh(wvn, rf.feature_importances_)
+#		plt.show()
+#
+#	if method==2:
+#		perm_importance = permutation_importance(rf, X_test, y_test)
+#		plt.barh(wvn, perm_importance.importances_mean)
+#		plt.show()
+#
+#	
+#	if method==3:
+#		explainer = shap.TreeExplainer(rf)
+#		shap_values = explainer.shap_values(X_test)
+#		shap.summary_plot(shap_values, X_test)#, plot_type="bar")
+#
+#	return
+#
 
 
 
