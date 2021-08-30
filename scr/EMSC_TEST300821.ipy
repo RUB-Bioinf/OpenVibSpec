@@ -1,0 +1,50 @@
+# coding: utf-8
+import openvibspec
+import openvibspec.preprocessing.EMCS() as EMSC
+import openvibspec.preprocessing.EMCS as EMSC
+from  openvibspec.preprocessing import EMSC() as emsc
+from  openvibspec.preprocessing import EMSC() 
+from  openvibspec.preprocessing import EMSC as corr
+import pandas as pd
+ emsc_data = pd.read_excel(os.path.join('/home/arne/Downloads/', 'emsc_testdata.xlsx'),index_col=0, header=None)
+import os
+ emsc_data = pd.read_excel(os.path.join('/home/arne/Downloads/', 'emsc_testdata.xlsx'),index_col=0, header=None)
+who
+import openvibspec.preprocessing.EMCS as EMSC
+from  openvibspec.preprocessing import EMSC 
+ emsc = EMSC(raw_spectra.mean(axis=0), wns, poly_order=4)
+d = np.load('/home/arne/emsc_testdata.npy')
+import numpy as np
+d = np.load('/home/arne/emsc_testdata.npy')
+w = np.load('/home/arne/emsc_data_wns.npy')
+d.shape
+w.shape
+corrected_standard = d[4:6]
+corrected_standard.shape
+residuals_standard = d[6:8]
+residuals_standard.shape
+raw_spectra = d[2:4]
+raw_spectra.shape
+w.shape
+emsc = EMSC(raw_spectra.mean(axis=0), wns, poly_order=4)
+emsc = EMSC(raw_spectra.mean(axis=0), w, poly_order=4)
+emsc.shape
+type(emsc)
+emsc = EMSC(raw_spectra.mean(axis=0), wns, poly_order=4)
+emsc = EMSC(raw_spectra.mean(axis=0), w, poly_order=4)
+corrected, inn = emsc.transform(raw_spectra, internals=True)
+corrected.shape
+import matplotlib.pyplot as plt
+plt.plot(w,corrected);
+plt.plot(w.T,corrected.T);
+plt.show()
+plt.plot(w.T,corrected.T);
+plt.show()
+weights = d[1]
+weights.shape
+ emsc2 = EMSC(raw_spectra.mean(axis=0), w, weights=weights)
+corrected2, inn2 = emsc2.transform(raw_spectra, internals=True)
+plt.plot(w.T,corrected2.T);
+plt.show()
+ emsc3 = EMSC(raw_spectra.mean(axis=0), w)
+%save -r EMSC_TEST300821 1-99999
