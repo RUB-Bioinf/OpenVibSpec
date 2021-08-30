@@ -16,7 +16,7 @@ corrected, inn = emsc.transform(raw_spectra, internals=True)
 ```
 As one can see from the screenshot, you get the correted data in form of an numpy array back.
 
-![dir RawIO](/documentation/Preprocessing/emsc_test.png.png) 
+![dir RawIO](/documentation/Preprocessing/emsc_test.png) 
 
 
 ```
