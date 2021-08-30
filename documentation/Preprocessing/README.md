@@ -18,11 +18,9 @@ As one can see from the screenshot, you get the correted data in form of an nump
 
 ![dir RawIO](/documentation/Preprocessing/emsc_test.png) 
 
+Important with all the inconsistencies that arise from the many different options are two things. Firstly, internally we always use the numpy array as the data standard, so that OpenvibSpec can be embedded well in all Python processes and secondly, always remember the help!
 
 ```
 help(EMSC)
 
 ```
-
-In the end your directory will look like the one on the image below. Before the import function was executed, only the .mat files were in the folder. When the raw data import is completed, the file with the data is added, here called "newdat_test.h5", and the overview image is added.
-
