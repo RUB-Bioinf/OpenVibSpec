@@ -56,7 +56,7 @@ help(DeepLearn)
 ```
 
 ## Deep Neural Network for Semantic Segmentation of IR data
-Also represented in the DeepLearn class is the model for semantic segmentation of IR data from colon tissue. Here we show how how this model can be used to classify raw IR data from the colon tissue.
+Also represented in the DeepLearn class is the model for semantic segmentation of IR data from colon tissue. Here we show how how this model can be used to classify raw IR data from the colon tissue. An important part of the raw data classification is to pay attention to the number of wavenumbers on the z-axis of the hyperspectral cube. This model uses only the data range between 950 and 1800 wavenumbers. This range for Agilent FTIR spectroscopes for example is in the first 450 points. Due to the maximum data size that can be uploaded to Github, the image below was created with a larger data set than is stored in the OpenVibSpec data directory.
 
 ```
 daclass  = dl.net(d2[:,:450],classify=True)
@@ -68,5 +68,5 @@ img_cl = max_cl.reshape(25,25)
 rgb_img = ovviz.change2color_profile(img_cl)
 
 ```
-An important part of the raw data classification is to pay attention to the number of wavenumbers on the z-axis of the hyperspectral cube. This model uses only the data range between 950 and 1800 wavenumbers. This range for Agilent FTIR spectroscopes for example is in the first 450 points. Due to the maximum data size that can be uploaded to Github, the image below was created with a larger data set than is stored in the OpenVibSpec data directory.
 
+In the code you can see how to get a Numpy array from the model with the size xy,z. Here xy are the 2D axes of the actual image and the z vector is a 19 class long vector with the assignment of each pixel to one of the 19 classes. 
