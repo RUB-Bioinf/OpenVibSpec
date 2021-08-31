@@ -1,4 +1,4 @@
-# Using Pretrained Deep Neural Networks in Spectroscopy 
+# Using Pre-trained Deep Neural Networks in Spectroscopy 
 
 In image classification, significant steps were taken in the last decade with the use of pre-trained NNs, which were then trained in transfer learning for their own application. The models contained in OpenVibSpec can be imported and used via the DeepLearn class. Models for semantic segmentation, Mie scatter correction and interpolation of the IR resolution limit are included.
 ## The Mie Correction Deep Neural Network
@@ -31,7 +31,7 @@ ovviz.plot_spec(x_corr,wvn, show=True)
 Those methods require the data in 2D representation and a certain vector with the device-specific wavenumbers. We'll include those vectors into the data directory. As one can see from the code above, you can use the plotting with and without 'show' argument. If you only use the first command, OpenVibSpec will save the plot into the currently used directory. OpenVibSpec uses the time-stamp as an name for the, in order to minimize the user input at this point.
 
 ```
-%timeit x_corr, model = dl.net(d2[:,:909], miecorr=True)
+%timeit x_corr = dl.net(d2[:,:909], miecorr=True)
 
 Loaded model from disk
 Loaded model from disk
@@ -54,3 +54,19 @@ Important with all the inconsistencies that arise from the many different option
 help(DeepLearn)
 
 ```
+
+## Deep Neural Network for Semantic Segmentation of IR data
+Also represented in the DeepLearn class is the model for semantic segmentation of IR data from colon tissue. Here we show how how this model can be used to classify raw IR data from the colon tissue.
+
+```
+daclass  = dl.net(d2[:,:450],classify=True)
+
+max_cl  =np.argmax(daclass,axis=1)
+
+img_cl = max_cl.reshape(25,25)
+
+rgb_img = ovviz.change2color_profile(img_cl)
+
+```
+An important part of the raw data classification is to pay attention to the number of wavenumbers on the z-axis of the hyperspectral cube. This model uses only the data range between 950 and 1800 wavenumbers. This range for Agilent FTIR spectroscopes for example is in the first 450 points. Due to the maximum data size that can be uploaded to Github, the image below was created with a larger data set than is stored in the OpenVibSpec data directory.
+

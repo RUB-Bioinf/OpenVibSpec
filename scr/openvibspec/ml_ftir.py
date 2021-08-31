@@ -546,11 +546,10 @@ class DeepLearn:
 		#import tensorflow.compat.v1 as tf
 		#tf.disable_v2_behavior()
 		"""
-		TODO: UPDATE TO TENSORFLOW VERSION 2 
-		"""
+		
 
 		####################################################################################################
-		#	DETERMINE WICH MODEL PARAMETERS YOUN WNAT TO USE
+		#	DETERMINE WICH MODEL PARAMETERS YOU WANT TO USE
 		#		CLASSIFY == TRUE GIVES THE MODEL TRAINED TO CLASSIFY ALL CELLUAR COMPONENTS BASED ON SPECTRA
 		#					BETWEEN 950-1800 WVN 
 		#	
@@ -558,7 +557,7 @@ class DeepLearn:
 		#				   ON FFPE-BASED TISSUE SPECTRA
 		#	
 		####################################################################################################
-
+		"""
 		if classify == True:
 
 			if x.shape[1] != 450:
@@ -585,7 +584,7 @@ class DeepLearn:
 
 			trX = normalize(x, axis=1, norm='l2')
 
-			return loaded_model.predict(trX), load_model
+			return loaded_model.predict(trX)
 
 		if miecorr == True:
 
@@ -617,7 +616,7 @@ class DeepLearn:
 			from sklearn.preprocessing import normalize
 			
 			trX = normalize(x, axis=1, norm='l2')
-			return loaded_model.predict(trX), load_model
+			return loaded_model.predict(trX)
 
 	
 	def transfer(self,x, y, batch,train_epochs,add_l=[], classify=False, miecorr=False, trainable=False ):
