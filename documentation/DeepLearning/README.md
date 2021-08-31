@@ -24,7 +24,9 @@ In order to get the correct data representation one can use the allready built-i
 
 import openvibspec.visualize as ovviz 
 ovviz.plot_spec(x_corr,wvn)
-
+```
+```
+import openvibspec.visualize as ovviz 
 ovviz.plot_spec(x_corr,wvn, show=True)
 
 ```
