@@ -72,7 +72,7 @@ What your are reading right now is the main README. This document is in the proj
 ├── scr
 └── setup.py
 ```
-To copy the code snippets from the tutorials in ```documentation/..```, you only have to press the button marked in green (see screenshot below) with the mouse and the code from the selected area is already in your clipboard.
+To copy the code snippets from the tutorials in ```documentation/..```, you only have to press the button marked in green (see screenshot below) with the mouse and the code from the selected area is already in your clipboard. But remember to change all variables after copy pasting that do not relate to the data you are using.
 ![alt text](/docs/assets/img/copy_paste_tutor.png)
 
 
