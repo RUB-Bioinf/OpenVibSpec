@@ -46,7 +46,7 @@ Possibility B) shows the procedure e.g. for spectra from other entities or embed
 
 
 ## Getting Started with OpenVibSpec
-What your are reading right now is the main README. From this directory you can switch to our documentation
+What your are reading right now is the main README. This document is in the project folder with a total of 5 other files. You can also change to three folders from here. If you would like to learn more about the installation using docker image e.g., first go to the ```documentation ```folder. From this folder, you can go to the respective subfolder and read the tutorial there and paste the code copy with a mouse click to your enviroment.
 ```
 .
 ├── docs
