@@ -46,7 +46,7 @@ Possibility B) shows the procedure e.g. for spectra from other entities or embed
 
 
 ## Getting Started with OpenVibSpec
-What your are reading right now is the main README. This document is in the project folder with a total of 5 other files. You can also change to three folders from here. If you would like to learn more about the installation using docker image e.g., first go to the ```documentation ```folder. From this folder, you can go to the respective subfolder and read the tutorial there and paste the code copy with a mouse click to your enviroment.
+What your are reading right now is the main README. This document is in the project folder with a total of 5 other files. You can also change to three folders from here. If you would like to learn more about the installation using docker image e.g., first go to the ```documentation```folder. From this folder, you can go to the respective subfolder and read the tutorial there and paste the code copy with a mouse click to your enviroment.
 ```
 .
 ├── docs
@@ -72,6 +72,9 @@ What your are reading right now is the main README. This document is in the proj
 ├── scr
 └── setup.py
 ```
+To copy the code snippets from the tutorials in ```documentation/..```, you only have to press the button marked in green (see screenshot below) with the mouse and the code from the selected area is already in your clipboard.
+![alt text](/docs/assets/img/copy_paste_tutor.png)
+
 
 #### References
 [1](https://www.nature.com/articles/nprot.2014.110)
