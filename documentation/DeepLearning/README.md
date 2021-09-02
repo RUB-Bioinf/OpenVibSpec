@@ -71,4 +71,25 @@ rgb_img = ovviz.change2color_profile(img_cl)
 
 ```
 
-In the code you can see how to get a Numpy array from the model with the size xy,z. Here xy are the 2D axes of the actual image and the z vector is a 19 class long vector with the assignment of each pixel to one of the 19 classes. 
+From the code you can see how to get a Numpy array from the model with the size xy,z. Here xy are the 2D axes of the actual image and the z vector is a 19 class long vector with the assignment of each pixel to one of the 19 classes. With the OpenVibSpec built-in feature colormap-conversion, you get access the the actual groundtruth labels, by using the last line of code above. You can use this procdure and the conversion to plot this via matplotlib like this, in ipython/jupyter enviroment:
+
+
+
+```
+import openvibspec.visualize as ovviz 
+import matplotlib.pyplot as plt
+
+rgb_img = ovviz.change2color_profile(img_cl)
+
+plt.imshow(rgb_img);
+plt.show()
+
+```
+By using this deep learning model on uncorrected FITR data from FFPE colon tissue, you get the prediction of the 228.250 data points, used in the given example image below, within less than 20 Seconds on an i5 Laptop w/o an GPU.
+
+![dir DeepLearning](/documentation/DeepLearning/ir_classificationNN.png) 
+
+
+## Transfer Learning with Pre-trained Deep Neural Network
+
+## GANs as a framework for morphologic details beyond the diffraction limit in infrared spectroscopic imaging
