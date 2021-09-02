@@ -47,7 +47,7 @@ Possibility B) shows the procedure e.g. for spectra from other entities or embed
 
 ## Getting Started with OpenVibSpec
 What your are reading right now is the main README. From this directory you can switch to our documentation
-
+```
 .
 ├── docs
 │   ├── assets
@@ -152,6 +152,7 @@ What your are reading right now is the main README. From this directory you can 
 │       ├── registration.py
 │       └── visualize.py
 └── setup.py
+```
 
 #### References
 [1](https://www.nature.com/articles/nprot.2014.110)
