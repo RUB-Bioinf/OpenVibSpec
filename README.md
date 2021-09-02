@@ -50,61 +50,7 @@ What your are reading right now is the main README. From this directory you can 
 ```
 .
 ├── docs
-│   ├── assets
-│   │   ├── css
-│   │   │   ├── animate.css
-│   │   │   ├── bootstrap.min.css
-│   │   │   ├── main.css
-│   │   │   ├── menu_sideslide.css
-│   │   │   ├── responsive.css
-│   │   │   ├── slicknav.css
-│   │   │   └── vegas.min.css
-│   │   ├── fonts
-│   │   │   ├── line-icons.css
-│   │   │   ├── LineIcons.eot
-│   │   │   ├── LineIcons.svg
-│   │   │   ├── LineIcons.ttf
-│   │   │   └── LineIcons.woff
-│   │   ├── img
-│   │   │   ├── github_workflowDL.png
-│   │   │   ├── hero1.jpg
-│   │   │   ├── hero-area3.jpg
-│   │   │   ├── ir_workflow_MieCorr.png
-│   │   │   ├── p6b.png
-│   │   │   ├── program_b.png
-│   │   │   ├── program.png
-│   │   │   ├── team
-│   │   │   │   ├── herrmann1.jpg
-│   │   │   │   ├── Zeichnung2.jpg
-│   │   │   │   ├── Zeichnung4.jpg
-│   │   │   │   └── Zeichnung.jpg
-│   │   │   └── vibspec_logo4b.png
-│   │   ├── js
-│   │   │   ├── bootstrap.min.js
-│   │   │   ├── classie.js
-│   │   │   ├── contact-form-script.min.js
-│   │   │   ├── form-validator.min.js
-│   │   │   ├── jquery.countdown.min.js
-│   │   │   ├── jquery.easing.min.js
-│   │   │   ├── jquery-min.js
-│   │   │   ├── jquery.nav.js
-│   │   │   ├── jquery.slicknav.js
-│   │   │   ├── main.js
-│   │   │   ├── map.js
-│   │   │   ├── menu.js
-│   │   │   ├── popper.min.js
-│   │   │   ├── scrolling-nav.js
-│   │   │   ├── vegas.min.js
-│   │   │   └── wow.js
-│   │   └── php
-│   │       └── form-process.php
-│   ├── CNAME
-│   ├── index.html
-│   ├── license.txt
-│   └── meeting.html
 ├── documentation
-│   ├── 01_Import_MATLAB_to_OpenVibSpec.ipynb
-│   ├── 02_Machine_Learning_with_spectra_in_OpenVibSpec.ipynb
 │   ├── Conda_Env
 │   │   ├── conda_py36.txt
 │   │   └── README.md
@@ -124,33 +70,6 @@ What your are reading right now is the main README. From this directory you can 
 ├── README.md
 ├── requirements.txt
 ├── scr
-│   └── openvibspec
-│       ├── data
-│       │   ├── emsc_data_wns.npy
-│       │   ├── emsc_testdata.npy
-│       │   ├── testdat_noMieffpe.npy
-│       │   └── wvn_agilent.npy
-│       ├── embeddings.py
-│       ├── __init__.py
-│       ├── io_ftir.py
-│       ├── ml_ftir.py
-│       ├── models
-│       │   ├── get_models.sh
-│       │   ├── model_weights_classification.best.hdf5
-│       │   ├── model_weights_classification.json
-│       │   ├── model_weights_regression.best.hdf5
-│       │   ├── model_weights_regression.json
-│       │   └── my_model.h5
-│       ├── nn_utils.py
-│       ├── preprocessing.py
-│       ├── __pycache__
-│       │   ├── __init__.cpython-38.pyc
-│       │   ├── io_ftir.cpython-38.pyc
-│       │   ├── ml_ftir.cpython-38.pyc
-│       │   ├── preprocessing.cpython-38.pyc
-│       │   └── visualize.cpython-38.pyc
-│       ├── registration.py
-│       └── visualize.py
 └── setup.py
 ```
 
