@@ -52,18 +52,9 @@ What your are reading right now is the main README. This document is in the proj
 ├── docs
 ├── documentation
 │   ├── Conda_Env
-│   │   ├── conda_py36.txt
-│   │   └── README.md
 │   ├── DeepLearning
-│   │   ├── ir_classificationNN.png
-│   │   ├── mie_corrNN.png
-│   │   └── README.md
 │   ├── Preprocessing
-│   │   ├── emsc_test.png
-│   │   └── README.md
 │   └── RawIO
-│       ├── README.md
-│       └── workflow.png
 ├── install_packages.sh
 ├── MANIFEST.in
 ├── openvibspec_env.yml
