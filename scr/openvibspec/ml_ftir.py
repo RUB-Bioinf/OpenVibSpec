@@ -558,6 +558,16 @@ class DeepLearn:
 		#	
 		####################################################################################################
 		"""
+		#############					TODO
+		#
+		#	CURRENTLY THE loaded_model INSTANCE IS EQUIPPED WITH DROPOUT LAYERS
+		#	SINSCE THE ORIGINAL MODEL WAS BASED ON THEANO THEY CAN ONLY BE USED IN A MONTE-CARLO-DROPOUT WAY
+		#
+		#	THIS SHOULD BE IMPLEMENTED AS 2ND CASE
+		#
+		#
+		#############
+
 		if classify == True:
 
 			if x.shape[1] != 450:
@@ -576,15 +586,26 @@ class DeepLearn:
 			loaded_model.load_weights(os.path.join(str(MODELPATH)+"/model_weights_classification.best.hdf5"))
 			
 			print("Loaded model from disk")
+
+			model2 = keras.Sequential(
+		      	[ loaded_model.layers[0],
+		          loaded_model.layers[1],
+		          loaded_model.layers[3],
+		          loaded_model.layers[5],
+		          loaded_model.layers[7],
+		          loaded_model.layers[9],
+		          loaded_model.layers[11],
+		          loaded_model.layers[13]])
+
 			
-			model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+			#model = loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
 			from sklearn.preprocessing import normalize
 			
 
 			trX = normalize(x, axis=1, norm='l2')
 
-			return loaded_model.predict(trX)
+			return model2.predict(trX)
 
 		if miecorr == True:
 
