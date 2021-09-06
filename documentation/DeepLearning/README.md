@@ -97,7 +97,7 @@ A very interesting deep learning application in the field of IR tissue spectrosc
 
 
 
-![dir DeepLearning](/documentation/DeepLearning/gan_res.png) 
+![dir DeepLearning](/documentation/DeepLearning/gan_res2.png) 
 
 From the point of view of the source codes, this is quickly applicable and simple. In the data folder, we have saved two possible test data which were provided to us by Falahkheirkhah and others. For using the pre-trained GAN, please read the paper carefully to extract the correct use cases.
 
