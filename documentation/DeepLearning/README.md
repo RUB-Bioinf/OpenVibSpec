@@ -93,3 +93,22 @@ By using this deep learning model on uncorrected FITR data from FFPE colon tissu
 ## Transfer Learning with Pre-trained Deep Neural Network
 
 ## GANs as a framework for morphologic details beyond the diffraction limit in infrared spectroscopic imaging
+A very interesting deep learning application in the field of IR tissue spectroscopy will be implemented in OpenVibSpec via the pre-trained GAN of Falahkheirkhah et al. With this, a generative model can be used to improve the downscaled resolution in spectroscopic image data without having to use light microscopy. The model itself needs the class membership and the IR data in the form of a Matlab file. The data is stored in the folder with label ```out```. In the screenshot shown you can see the loading of the final image plus the display via the python library matplotlib.
+
+
+
+![dir DeepLearning](/documentation/DeepLearning/gan_res.png) 
+
+From the point of view of the source codes, this is quickly applicable and simple. In the data folder, we have saved two possible test data which were provided to us by Falahkheirkhah and others. For using the pre-trained GAN, please read the paper carefully to extract the correct use cases.
+
+```
+import openvibspec.ml_ftir as ovml
+
+dl = ovml.DeepLearn()
+
+dl.gan_ir_upsample('openvibspec/data/datasets/Class/','openvibspec/data/datasets/IR/')
+
+
+
+
+```
