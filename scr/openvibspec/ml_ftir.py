@@ -364,6 +364,55 @@ def plot_specs_by_class(x,classes_array,class2plot):
 	plt.plot(dat.T)
 	plt.show()
 	return(dat)
+
+
+
+def transform_gt(pic):
+	"""
+	you need to specify the given ground truth as an image with the following axes:
+	pic.shape = x,y,z
+
+	"""
+	import numpy as np
+	from sklearn.preprocessing import LabelEncoder
+	from sklearn.preprocessing import OneHotEncoder
+	from keras.preprocessing.image import load_img
+	from collections import Counter
+	label_encoder = LabelEncoder()
+
+	img = load_img(pic)
+
+	inp  = np.asarray(img)
+
+	x,y,z = inp.shape
+
+	inp2 = inp.reshape(x*y,z)
+
+	yl  = inp2.tolist() 
+
+	new_A = map(tuple, yl)
+
+	final_count = Counter(new_A)
+
+	a = list(final_count)
+
+	pair= {}
+	for i,j in enumerate(a):
+		pair[j] = i
+
+	for i, pixel in enumerate(yl):
+		if tuple(pixel) in list(pair.keys()):
+			yl[i] = pair[tuple(pixel)]
+
+	integer_encoded = label_encoder.fit_transform(yl)
+
+	onehot_encoder = OneHotEncoder(sparse=False)
+
+	integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+
+	onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+
+	return final_count, pair, onehot_encoded
 ####################################################################################################
 ####################################################################################################
 # PRETRAINED DEEP NEURAL NETWORKS
