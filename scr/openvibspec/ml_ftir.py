@@ -705,15 +705,15 @@ class DeepLearn:
 
 		"""
 		trX = normalize(x, axis=1, norm='l2')
-		def onehot(y):
-			import keras
-			from keras.utils import np_utils
-
-			c = np.max(y) + 1
-			
-			y1hot = np_utils.to_categorical(y, num_classes=c)
-			
-			return(y1hot)
+		#def onehot(y):
+		#	import keras
+		#	from keras.utils import np_utils
+#
+		#	c = np.max(y) + 1
+		#	
+		#	y1hot = np_utils.to_categorical(y, num_classes=c)
+		#	
+		#	return(y1hot)
 
 		def add_layer():
 			from keras.utils import np_utils
@@ -721,7 +721,8 @@ class DeepLearn:
 			from keras.models import Model
 			from keras import models
 
-			yoh = onehot(y)
+			#yoh = onehot(y)
+			yoh = y
 			sm = int(yoh.shape[1])
 			
 			print("training on",sm,"classes")
@@ -745,22 +746,31 @@ class DeepLearn:
 			
 			
 			if not add_l:
-				preds = Dense(sm, name='newlast', activation='softmax')(loaded_model.layers[-3].output)
+				model2 = keras.Sequential(
+  				[ loaded_model.layers[0],
+    			  loaded_model.layers[1],
+    			  loaded_model.layers[3],
+    			  loaded_model.layers[5],
+    			  loaded_model.layers[7],
+    			  loaded_model.layers[9],
+    			  loaded_model.layers[11],
+    			  loaded_model.layers[13]])
+				preds = Dense(sm, name='newlast', activation='softmax')(model2.layers[-1].output)
 
-				model = Model(inputs=loaded_model.input, outputs=preds)
+				model2 = Model(inputs=model2.input, outputs=preds)
 
-				model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+				model2.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-				history = model.fit(trX,yoh,batch_size=batch,epochs=train_epochs )
+				history = model2.fit(trX,yoh,batch_size=batch,epochs=train_epochs )
 
-				print(model.summary())
+				print(model2.summary())
 
 			if add_l:
 				
 				
 				def add_2_model(add_l):
 					
-					base = Model(inputs=loaded_model.input, outputs=loaded_model.layers[-3].output)
+					base = Model(inputs=loaded_model.input, outputs=loaded_model.layers[-1].output)
 					
 					model = Sequential()
 					model.add(base)
