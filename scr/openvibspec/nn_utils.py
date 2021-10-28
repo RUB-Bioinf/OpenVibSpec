@@ -350,6 +350,32 @@ class PlotTrainingLiveCallback(Callback):
 
 
 # ###############################
+# STATIC FIELDS
+# ###############################
+
+pgf_plot_colors = [
+    'red',
+    'green',
+    'blue',
+    'cyan',
+    'magenta',
+    'yellow',
+    'black',
+    'gray',
+    'darkgray',
+    'lightgray',
+    'brown',
+    'lime',
+    'olive',
+    'orange',
+    'pink',
+    'purple',
+    'teal',
+    'violet',
+    'white']
+
+
+# ###############################
 # OTHER UTIL FUNCTIONS
 # ###############################
 
@@ -462,8 +488,8 @@ def create_tikz_axis(title: str, label_y: str, label_x: str = 'Epoch', max_x: fl
 
 def get_plt_as_tex(data_list_y: [[float]], plot_colors: [str], title: str, label_y: str, data_list_x: [[float]] = None,
                    plot_titles: [str] = None, label_x: str = 'Epoch', max_x: float = 1.0, min_x: float = 0.0,
-                   max_y: float = 1.0,
-                   min_y: float = 0.0, max_entries: int = 4000, tick_count: int = 10, legend_pos: str = 'north west'):
+                   max_y: float = 1.0, min_y: float = 0.0, max_entries: int = 4000, tick_count: int = 10,
+                   legend_pos: str = 'north west') -> str:
     """
     Formats a list of given plots in a single tikz axis to be compiled in LaTeX.
     
