@@ -11,7 +11,6 @@ To run openvibspec/anaconda3 with docker invoke the following command. Prerequis
 
 ```
 docker run -it -v <your-notebook-folder>:/opt/notebooks -p 8888:8888 openvibspec/anaconda3
-
 ```
 You'll be placed inside your instanciated docker container like so:
 
@@ -57,6 +56,5 @@ The notebook start should look like this in the shell:
 You have to manually copy the last line to your address-bar of your preferred browser:
 
 ```
-
 http://127.0.0.1:8888/?token=c061d3ebe26dbcc83bd661740b6e2fee3d8c84373fafa3f5
 ```

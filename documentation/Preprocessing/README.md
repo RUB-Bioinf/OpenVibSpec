@@ -1,13 +1,12 @@
 # Correction of Mie Scattering in IR Spectroscopy 
 
-When using infrared light and biological samples (not only there), Mie scattering very often occurs in the spectra. A number of different methods are available to correct this. Some of these methods come from the BioSpec LAb of Achim Kohler at NMBU, Norway. These can be used in Openvibspeec as follows.
+When using infrared light and biological samples (not only there), Mie scattering very often occurs in the spectra. A number of different methods are available to correct this. Some of these methods come from the BioSpec Lab of Achim Kohler at NMBU, Norway. These can be used in Openvibspeec as follows.
 ```
 from  openvibspec.preprocessing import EMSC
 import numpy as np
 d = np.load('/data/emsc_testdata.npy')
 w = np.load('/data/emsc_data_wns.npy')
 raw_spectra = d[2:4]
-
 ```
 The provided code starts with all the necessary imports in terms of code and test data. Within the EMSC class the user gets access to different methods. 
 ```
@@ -22,5 +21,4 @@ Important with all the inconsistencies that arise from the many different option
 
 ```
 help(EMSC)
-
 ```
