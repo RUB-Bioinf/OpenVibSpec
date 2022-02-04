@@ -109,6 +109,19 @@ To copy the code snippets from the tutorials in ```documentation/..```, you only
 
 ![alt text](/docs/assets/img/copy_paste_tutor.png)
 
+## Example Data
+
+Example data is available via [Zendodo](https://doi.org/10.5281/zenodo.5956845).
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5956845.svg)](https://doi.org/10.5281/zenodo.5956845)
+
+***
+
+## Wiki
+
+To learn more details or read the FAQ, access the [OpenVibSpec Wiki](https://github.com/RUB-Bioinf/OpenVibSpec/wiki).
+
+
 ## Docker
 You can also download an image from [DockerHub](https://hub.docker.com/u/openvibspec).
 
