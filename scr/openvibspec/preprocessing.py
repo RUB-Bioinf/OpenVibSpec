@@ -8,9 +8,6 @@ E.g.
 - Data transformations from 3D to 2D and reverse
 - ...
 
-@JoshuaButke
-github.com/butkej
-Mail: joshua.butke@rub.de
 '''
 
 # IMPORTS
