@@ -4,19 +4,31 @@ Configured for use with tiled bags of spectral data in OpenVibSpec.
 Depending on the 'depth' of spectra you try to process you need to initialize the model accordingly.
 We do not recommend using more than 16 wavenumbers for the spectral depth.
 
-Since MIL uses 4 GPUs in a cascading manner the model is initialized in parts directly on the GPUs via the torch method .to('cuda:#')
+This script is designed to work with up to 4 GPUs to distribute computational load. You can specify the load distribution by using a custom "device_ordinals" list.
+There are three pre-defined ordinal profiles, as follows:
+ - device_ordinals_cpu - Not using the GPU. All computations run on the CPU.
+ - device_ordinals_single_gpu - Using the first available GPU to run all computations.
+ - device_ordinals_cluster_gpu - Using a 4 GPU setup to distribute load evenly among all 4.
 
 Data to load, preprocessing of e.g. tissue into fitting tiles and bags to use for MIL needs to be changed by the user.
 Accordingly, this file contains everything that is used to define the MIL model and train/validate/test it and the MAIN part when calling directly only serves as an exemplary starting point.
 
-Author: @Joshua Butke
+Author: @Joshua Butke & @Nils Förster
 """
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import mil_metrics
+from scr.openvibspec.utils import mil_callbacks
+from scr.openvibspec.utils import mil_metrics
+
+# GLOBAL
+#######
+device_ordinals_cpu = None
+device_ordinals_single_gpu = [0, 0, 0, 0]
+device_ordinals_cluster_gpu = [0, 1, 2, 3]
+
 
 # UTILS
 #######
@@ -45,8 +57,12 @@ def load_checkpoint(loadpath, model, optim):
 # MODEL
 #######
 class DeepAttentionMIL(nn.Module):
-    def __init__(self, spectra=10, use_bias=False, use_gated=True, use_adaptive=False):
+    def __init__(self, device, device_ordinals=device_ordinals_cpu, spectra=10, use_bias=False, use_gated=True,
+                 use_adaptive=False):
         super().__init__()
+
+        self.device = device
+        self._device_ordinals = device_ordinals
         self.linear_nodes = 512
         self.attention_nodes = 128
         self.num_classes = 1
@@ -67,7 +83,7 @@ class DeepAttentionMIL(nn.Module):
             ),
             nn.LeakyReLU(0.01),
             nn.MaxPool2d(2, stride=2),
-        ).to("cuda:0")
+        ).to(self.get_device_ordinal(0))
 
         self.feature_extractor_1 = nn.Sequential(
             nn.Conv2d(
@@ -80,7 +96,7 @@ class DeepAttentionMIL(nn.Module):
             ),
             nn.LeakyReLU(0.01),
             nn.MaxPool2d(2, stride=2),
-        ).to("cuda:1")
+        ).to(self.get_device_ordinal(1))
 
         self.feature_extractor_2 = nn.Sequential(
             nn.Conv2d(
@@ -102,7 +118,7 @@ class DeepAttentionMIL(nn.Module):
             ),
             nn.LeakyReLU(0.01),
             nn.MaxPool2d(2, stride=2),
-        ).to("cuda:2")
+        ).to(self.get_device_ordinal(2))
 
         size_after_conv = self._get_conv_output(self.input_dim)
 
@@ -122,33 +138,30 @@ class DeepAttentionMIL(nn.Module):
             ),
             nn.LeakyReLU(0.01),
             nn.Dropout(0.5),
-        ).to(
-            "cuda:3"
-        )  # bag of embeddings
+        ).to(self.get_device_ordinal(3))  # bag of embeddings
 
         if not self.use_gated:
             self.attention = nn.Sequential(
                 nn.Linear(self.linear_nodes, self.attention_nodes, bias=self.use_bias),
                 nn.Tanh(),
                 nn.Linear(self.attention_nodes, 1),
-            ).to(
-                "cuda:3"
-            )  # two-layer NN that replaces the permutation invariant pooling operator( max or mean normally, which are pre-defined and non trainable) with an adaptive weighting attention mechanism
+            ).to(self.get_device_ordinal(3))
+            # two-layer NN that replaces the permutation invariant pooling operator( max or mean normally, which are pre-defined and non trainable) with an adaptive weighting attention mechanism
 
         elif self.use_gated:
             self.attention_V = nn.Sequential(
                 nn.Linear(self.linear_nodes, self.attention_nodes), nn.Tanh()
-            ).to("cuda:3")
+            ).to(self.get_device_ordinal(3))
 
             self.attention_U = nn.Sequential(
                 nn.Linear(self.linear_nodes, self.attention_nodes), nn.Sigmoid()
-            ).to("cuda:3")
+            ).to(self.get_device_ordinal(3))
 
-            self.attention = nn.Linear(self.attention_nodes, 1).to("cuda:3")
+            self.attention = nn.Linear(self.attention_nodes, 1).to(self.get_device_ordinal(3))
 
         self.classifier = nn.Sequential(
             nn.Linear(self.linear_nodes, self.num_classes), nn.Sigmoid()
-        ).to("cuda:3")
+        ).to(self.get_device_ordinal(3))
 
     def forward(self, x):
         """Forward NN pass, declaring the exact interplay of model components"""
@@ -157,9 +170,9 @@ class DeepAttentionMIL(nn.Module):
         )  # compresses unnecessary dimensions eg. (1,batch,channel,x,y) -> (batch,channel,x,y)
         # transformation f_psi of instances in a bag
         hidden = self.feature_extractor_0(x)
-        hidden = self.feature_extractor_1(hidden.to("cuda:1"))
-        hidden = self.feature_extractor_2(hidden.to("cuda:2"))
-        hidden = self.feature_extractor_3(hidden.to("cuda:3"))  # N x linear_nodes
+        hidden = self.feature_extractor_1(hidden.to(self.get_device_ordinal(1)))
+        hidden = self.feature_extractor_2(hidden.to(self.get_device_ordinal(2)))
+        hidden = self.feature_extractor_3(hidden.to(self.get_device_ordinal(3)))  # N x linear_nodes
 
         # transformation sigma: attention-based MIL pooling
         if not self.use_gated:
@@ -188,21 +201,19 @@ class DeepAttentionMIL(nn.Module):
             pseudo_positive = torch.where(
                 positive_attention > 0,
                 torch.transpose(hidden, 1, 0),
-                torch.tensor([0.0], device="cuda:3"),
+                torch.tensor([0.0], device=self.get_device_ordinal(3)),
             )  # select all elements of the hidden feature embeddings that have sufficient attention
-            positive_attention = positive_attention.unsqueeze(
-                0
-            )  # reverse vector [n] to [1,n]
+            positive_attention = positive_attention.unsqueeze(0)  # reverse vector [n] to [1,n]
 
             negative_attention = torch.where(
                 attention.squeeze(0) <= mean_attention,
                 attention.squeeze(),
-                torch.tensor([0.0], device="cuda:3"),
+                torch.tensor([0.0], device=self.get_device_ordinal(3)),
             )  # attention vector with zeros if elements > mean_attention
             pseudo_negative = torch.where(
                 negative_attention > 0,
                 torch.transpose(hidden, 1, 0),
-                torch.tensor([0.0], device="cuda:3"),
+                torch.tensor([0.0], device=self.get_device_ordinal(3)),
             )  # select all elements of the hidden feature embeddings matching this new vector
             negative_attention = negative_attention.unsqueeze(0)
 
@@ -213,7 +224,7 @@ class DeepAttentionMIL(nn.Module):
                 negative_attention, torch.transpose(pseudo_negative, 1, 0)
             )  # pseudo negative instances N_in Matrix Mult modfied by lambda hyperparameter (increases weightdifferences between pos/neg)
             z = (
-                x_mul_positive + x_mul_negative
+                    x_mul_positive + x_mul_negative
             )  # see formula 2 of Li et al. MICCAI 2019
 
         # transformation g_phi of pooled instance embeddings
@@ -226,13 +237,29 @@ class DeepAttentionMIL(nn.Module):
         Conv layers to compute the input shape for the Flatten -> Linear layers input size
         """
         bs = 1
-        test_input = torch.autograd.Variable(torch.rand(bs, *shape)).to("cuda:0")
+        test_input = torch.autograd.Variable(torch.rand(bs, *shape)).to(self.get_device_ordinal(0))
         output_features = self.feature_extractor_0(test_input)
-        output_features = self.feature_extractor_1(output_features.to("cuda:1"))
-        output_features = self.feature_extractor_2(output_features.to("cuda:2"))
+        output_features = self.feature_extractor_1(output_features.to(self.get_device_ordinal(1)))
+        output_features = self.feature_extractor_2(output_features.to(self.get_device_ordinal(2)))
         n_size = int(output_features.data.view(bs, -1).size(1))
         del test_input, output_features
         return n_size
+
+    # DEVICE FUNCTIONS
+    def get_device_ordinal(self, index: int) -> str:
+        if self._device_ordinals is None:
+            return 'cpu'
+
+        if self.is_cpu():
+            return 'cpu'
+
+        return 'cuda:' + str(self._device_ordinals[index])
+
+    def is_cpu(self) -> bool:
+        return self.device.type == 'cpu'
+
+    def get_device_ordinals(self) -> [int]:
+        return self._device_ordinals.copy()
 
     # COMPUTATION METHODS
     def compute_loss(self, X, y):
@@ -282,7 +309,7 @@ def get_predictions(model, dataloader):
         bag_label = label[0]
         bag_label = bag_label.cpu()
 
-        y_hat, preds, attention = model(data.to("cuda:0"))
+        y_hat, preds, attention = model(data.to(model.get_device_ordinal(0)))
         y_hat = y_hat.squeeze(dim=0)  # for binary setting
         y_hat = y_hat.cpu()
         preds = preds.squeeze(dim=0)  # for binary setting
@@ -318,8 +345,8 @@ def evaluate(model, dataloader):
     for batch_id, (data, label) in enumerate(dataloader):
         label = label.squeeze()
         bag_label = label[0]
-        data = data.to("cuda:0")
-        bag_label = bag_label.to("cuda:3")
+        data = data.to(model.get_device_ordinal(0))
+        bag_label = bag_label.to(model.get_device_ordinal(3))
 
         loss, attention_weights = model.compute_loss(data, bag_label)
         test_losses.append(float(loss))
@@ -333,13 +360,23 @@ def evaluate(model, dataloader):
     return result, attention_weights
 
 
-def fit(model, optim, train_dl, validation_dl, model_savepath):
+def fit(model, optim, train_dl, validation_dl, model_savepath, callbacks: [mil_callbacks.BaseTorchCallback]):
     """Trains a model on the previously preprocessed train and val sets.
     Also calls evaluate in the validation phase of each epoch.
     """
     best_acc = 0
     history = []
+    cancel_requested = False
+
+    # Notifying callbacks
+    for i in range(len(callbacks)):
+        callback: mil_callbacks.BaseTorchCallback = callbacks[i]
+        callback.on_training_start(model=model)
+
     for epoch in range(1, args.epochs + 1):
+        if cancel_requested:
+            break
+
         # TRAINING PHASE
         model.train()
         train_losses = []
@@ -349,8 +386,13 @@ def fit(model, optim, train_dl, validation_dl, model_savepath):
             label = label.squeeze()
             bag_label = label[0]
 
-            data = data.to("cuda:0")
-            bag_label = bag_label.to("cuda:3")
+            # Notifying Callbacks
+            for i in range(len(callbacks)):
+                callback: mil_callbacks.BaseTorchCallback = callbacks[i]
+                callback.on_batch_start(model=model, batch_id=batch_id, data=data, label=bag_label)
+
+            data = data.to(model.get_device_ordinal(0))
+            bag_label = bag_label.to(model.get_device_ordinal(3))
 
             model.zero_grad()  # resets gradients
 
@@ -390,7 +432,43 @@ def fit(model, optim, train_dl, validation_dl, model_savepath):
         }
         save_checkpoint(state, is_best, model_savepath)
 
+        # Notifying Callbacks
+        for i in range(len(callbacks)):
+            callback: mil_callbacks.BaseTorchCallback = callbacks[i]
+            callback.on_epoch_finished(model=model, epoch=epoch, epoch_result=result, history=history)
+            cancel_requested = cancel_requested or callback.is_cancel_requested()
+
+        if cancel_requested:
+            print('Model was canceled before reaching all epochs.')
+
+    # Notifying callbacks that training has finished
+    for i in range(len(callbacks)):
+        callback: mil_callbacks.BaseTorchCallback = callbacks[i]
+        callback.on_training_finished(model=model, was_canceled=cancel_requested, history=history)
+
     return history
+
+
+#############
+#############
+
+def get_device(gpu_preferred: bool = True):
+    ''' Pick GPU if available, else run on CPU.
+    Returns the corresponding device.
+    '''
+    if gpu_preferred:
+        torch.cuda.init()
+
+        if torch.cuda.is_available():
+            print('Running on GPU.')
+            return torch.device('cuda')
+        else:
+            print('  =================')
+            print('Wanted to run on GPU but it is not available!!')
+            print('  =================')
+
+    print('Running on CPU.')
+    return torch.device('cpu')
 
 
 #############
@@ -405,6 +483,7 @@ if __name__ == "__main__":
     device = get_device()
     print(device)
 
+    device_ordinals = device_ordinals_single_gpu
     metric_savepath = "path/to/your/metrics_folder"
     model_savepath = "path/to/your/model_folder"
     #############
@@ -423,7 +502,7 @@ if __name__ == "__main__":
     #############
 
     # Model
-    model = DeepAttentionMIL(spectra=10)
+    model = DeepAttentionMIL(spectra=10, device=device, device_ordinals=device_ordinals)
     loader_kwargs = {}
     if torch.cuda.is_available():
         loader_kwargs = {"num_workers": 4, "pin_memory": True}
@@ -442,9 +521,14 @@ if __name__ == "__main__":
         validation_ds, batch_size=1, shuffle=False, **loader_kwargs
     )
 
+    # Setting up callbacks
+    callbacks = []
+    callbacks.append(mil_callbacks.UnreasonableLossCallback(loss_max=40.0))
+    callbacks.append(mil_callbacks.EarlyStopping(epoch_threshold=30))
+
     # Training
     ##########
-    history = fit(model, optim, train_dl, validation_dl, model_savepath)
+    history = fit(model, optim, train_dl, validation_dl, model_savepath, callbacks=callbacks)
     # Get best saved model from this run
     model, optim, _, _ = load_checkpoint(model_savepath, model, optim)
 
@@ -461,7 +545,6 @@ if __name__ == "__main__":
     print("Computing and plotting binary ROC-Curve")
     fpr, tpr, _ = mil_metrics.binary_roc_curve(y_true, y_hats)
     mil_metrics.plot_binary_roc_curve(fpr, tpr, metric_savepath)
-
 
 # END OF FILE
 #############
