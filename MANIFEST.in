@@ -1,5 +1,8 @@
-recursive-include scr/openvibspec models/*
+recursive-include openvibspec models/*
 
 global-exclude __pycache__
 
-README.md
+prune docs  # web page
+prune .github
+
+include README.md
