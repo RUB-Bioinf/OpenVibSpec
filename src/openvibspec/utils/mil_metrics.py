@@ -16,8 +16,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, auc, roc_curve
 import torch
+import cv2
 
 plt.style.use("ggplot")
+
 
 # FUNCTIONS
 ###########
@@ -48,7 +50,7 @@ def reconstruct_image(img, coords, attention=None, background=False):
         reconst_img = np.zeros(shape=(img_shape[0], img_shape[1]), dtype=np.uint8)
 
     elif (
-        background == True
+            background == True
     ):  # alternativly use the original image downscaled in intensity
         reconst_img = img * 0.1
 
@@ -60,14 +62,14 @@ def reconstruct_image(img, coords, attention=None, background=False):
         attention_max = attention.max()
         for patch, patch_attention in zip(coords, attention):
             patch_attention_scaled = (patch_attention - attention_min) / (
-                attention_max - attention_min
+                    attention_max - attention_min
             )
             y_left, y_right, x_left, x_right = patch
             reconst_img[y_left:y_right, x_left:x_right] = img[
-                y_left:y_right, x_left:x_right
-            ]
+                                                          y_left:y_right, x_left:x_right
+                                                          ]
             reconst_img[y_left:y_right, x_left:x_right] = (
-                reconst_img[y_left:y_right, x_left:x_right] * patch_attention_scaled
+                    reconst_img[y_left:y_right, x_left:x_right] * patch_attention_scaled
             )
             cv2.rectangle(
                 reconst_img, (x_left, y_left), (x_right, y_right), (255, 255, 255), 3
@@ -76,8 +78,8 @@ def reconstruct_image(img, coords, attention=None, background=False):
         for patch in coords:
             y_left, y_right, x_left, x_right = patch
             reconst_img[y_left:y_right, x_left:x_right] = img[
-                y_left:y_right, x_left:x_right
-            ]
+                                                          y_left:y_right, x_left:x_right
+                                                          ]
             cv2.rectangle(
                 reconst_img, (x_left, y_left), (x_right, y_right), (255, 255, 255), 3
             )
@@ -114,7 +116,7 @@ def plot_losses(history, savepath):
 
 
 def plot_conf_matrix(
-    y_true, y_pred, savepath, target_names, title="Confusion Matrix", normalize=True
+        y_true, y_pred, savepath, target_names, title="Confusion Matrix", normalize=True
 ):
     """computes and plots the confusion matrix using sklearn
     Title can be set arbitrarily but target_names should be a list of class names eg. ['positive', 'negative']

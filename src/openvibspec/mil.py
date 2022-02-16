@@ -20,8 +20,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from scr.openvibspec.utils import mil_callbacks
-from scr.openvibspec.utils import mil_metrics
+from src.openvibspec.utils import mil_callbacks
+from src.openvibspec.utils import mil_metrics
 
 # GLOBAL
 #######
@@ -360,7 +360,8 @@ def evaluate(model, dataloader):
     return result, attention_weights
 
 
-def fit(model, optim, train_dl, validation_dl, model_savepath, callbacks: [mil_callbacks.BaseTorchCallback]):
+def fit(model, optim, train_dl, validation_dl, model_savepath, callbacks: [mil_callbacks.BaseTorchCallback],
+        epochs: int = 100) -> {str}:
     """Trains a model on the previously preprocessed train and val sets.
     Also calls evaluate in the validation phase of each epoch.
     """
@@ -373,7 +374,7 @@ def fit(model, optim, train_dl, validation_dl, model_savepath, callbacks: [mil_c
         callback: mil_callbacks.BaseTorchCallback = callbacks[i]
         callback.on_training_start(model=model)
 
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(1, epochs + 1):
         if cancel_requested:
             break
 

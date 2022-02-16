@@ -115,7 +115,7 @@ class UnreasonableLossCallback(BaseTorchCallback):
                 self.irrational_epochs_count) + '/' + str(self.tolerance))
 
             if self.irrational_epochs_count >= self.tolerance:
-                log.write('The spree has exceeded the tolerance. Aborting training.')
+                print('The spree has exceeded the tolerance. Aborting training.')
                 self.request_cancellation()
         else:
             self.irrational_epochs_count = 0

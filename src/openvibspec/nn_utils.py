@@ -64,7 +64,6 @@ class CanaryInterruptCallback(Callback):
         self.out_stream = out_stream
 
         os.makedirs(path, exist_ok=True)
-        b: TextIOWrapper = 2
 
         self.__canary_file = path + os.sep + 'canary_interrupt.txt'
         if os.path.exists(self.__canary_file):

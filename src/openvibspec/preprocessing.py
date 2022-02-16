@@ -34,17 +34,18 @@ def _baseline_corr(data, lam=1000, p=0.05, n_iter=10):
     from scipy.sparse.linalg import spsolve
 
     data_length = len(data)
-    D = sparse.diags([1,-2,1],[0,-1,-2], shape=(data_length, data_length-2))
+    D = sparse.diags([1, -2, 1], [0, -1, -2], shape=(data_length, data_length - 2))
     D = lam * D.dot(D.T)
     weights = np.ones(data_length)
     W = sparse.spdiags(weights, 0, data_length, data_length)
     for i in range(n_iter):
         W.setdiag(weights)
-        Z = W + D 
-        z = spsolve(Z, weights*data)
-        weights = p * (data > z) + (1-p) * (data < z)
-    
+        Z = W + D
+        z = spsolve(Z, weights * data)
+        weights = p * (data > z) + (1 - p) * (data < z)
+
     return z
+
 
 def baseline_als(data, lam=1000, p=0.05, n_iter=10):
     '''Checks input data shape. If it's a single spectrum defaults to calling subfunction _baseline_corr. Otherwise loops through the data of shape (number of spectra, data points) and applies correction to each spectrum.
@@ -53,19 +54,21 @@ def baseline_als(data, lam=1000, p=0.05, n_iter=10):
     '''
 
     if len(data.shape) == 1:
-        result = np.array(_baseline_corr(data,lam,p,n_iter))
+        result = np.array(_baseline_corr(data, lam, p, n_iter))
         return result
 
     elif len(data.shape) == 2:
-        result = np.array([_baseline_corr(i,lam,p,n_iter) for i in data])
+        result = np.array([_baseline_corr(i, lam, p, n_iter) for i in data])
         return result
 
     else:
-        print('Data shape error! Please check your input values accordingly. Desired shape of (number of spectra, data points)')
+        print(
+            'Data shape error! Please check your input values accordingly. Desired shape of (number of spectra, data points)')
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # AS IMPLEMENTED BY SHUXIA GUO DURING THE INITIAL HACKATHON
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 from typing import Union as U, Tuple as T, Optional
 from sklearn.decomposition import PCA
@@ -75,12 +78,13 @@ from sklearn.metrics import confusion_matrix
 
 import numpy as np
 
-def emsc(spectra: np.ndarray, 
-         wavenumbers: np.ndarray, 
-         poly_order: Optional[int]=2,
-         reference: np.ndarray = None, 
+
+def emsc(spectra: np.ndarray,
+         wavenumbers: np.ndarray,
+         poly_order: Optional[int] = 2,
+         reference: np.ndarray = None,
          constituents: np.ndarray = None,
-         use_reference: bool=True,
+         use_reference: bool = True,
          return_coefs: bool = False) -> U[np.ndarray, T[np.ndarray, np.ndarray]]:
     """
     Preprocess all spectra with EMSC
@@ -102,16 +106,16 @@ def emsc(spectra: np.ndarray,
     a_0 + a_1*w + a_2*w^2 + ...                         # polynomial coeffs
     :return: preprocessed spectra, [coefficients]
     """
-#    assert poly_order >= 0, 'poly_order must be >= 0'
-    
+    #    assert poly_order >= 0, 'poly_order must be >= 0'
+
     if reference is None:
         reference = np.mean(spectra, axis=0)
-    
+
     reference = reference[:, np.newaxis]
-    
+
     half_rng = np.abs(wavenumbers[0] - wavenumbers[-1]) / 2
     normalized_wns = (wavenumbers - np.mean(wavenumbers)) / half_rng
-    
+
     if poly_order is None:
         if constituents is None:
             columns = (reference)
@@ -128,32 +132,37 @@ def emsc(spectra: np.ndarray,
             columns = (reference, polynomial_columns)
         else:
             columns = (reference, constituents.T, polynomial_columns)
-    
+
     if not use_reference: columns = columns[1:]
-    
-    if isinstance(columns, tuple): X = np.concatenate(columns, axis=1)
-    else: X = columns.copy()
+
+    if isinstance(columns, tuple):
+        X = np.concatenate(columns, axis=1)
+    else:
+        X = columns.copy()
     A = np.dot(np.linalg.pinv(np.dot(X.T, X)), X.T)
 
     spectra_columns = spectra.T
     coefs = np.dot(A, spectra_columns)
     residues = spectra_columns - np.dot(X, coefs)
 
-    if use_reference:  preprocessed_spectra = residues/coefs[0] + reference
-    else: preprocessed_spectra = residues.copy() 
+    if use_reference:
+        preprocessed_spectra = residues / coefs[0] + reference
+    else:
+        preprocessed_spectra = residues.copy()
 
     if return_coefs:
         return preprocessed_spectra.T, coefs.T
 
     return preprocessed_spectra.T
 
-def rep_emsc(spectra: np.ndarray, 
-             wavenumbers: np.ndarray, 
+
+def rep_emsc(spectra: np.ndarray,
+             wavenumbers: np.ndarray,
              replicate: np.ndarray,
-             poly_order: Optional[int]=2,
-             reference: np.ndarray = None, 
-             n_comp: int=1,
-             use_reference: bool=True,
+             poly_order: Optional[int] = 2,
+             reference: np.ndarray = None,
+             n_comp: int = 1,
+             use_reference: bool = True,
              return_coefs: bool = False):
     """
     Preprocess all spectra with replicate EMSC
@@ -179,19 +188,20 @@ def rep_emsc(spectra: np.ndarray,
                                   replicate=replicate,
                                   do_PCA=True,
                                   n_comp=n_comp)[1]
-    
-    res = emsc(spectra=spectra, 
-               wavenumbers=wavenumbers, 
+
+    res = emsc(spectra=spectra,
+               wavenumbers=wavenumbers,
                poly_order=poly_order,
-               reference=reference, 
+               reference=reference,
                constituents=constituents,
                use_reference=use_reference,
                return_coefs=return_coefs)
-    
+
     return res
- 
-def cal_rep_matrix(spectra: np.ndarray, 
-                   wavenumbers: np.ndarray, 
+
+
+def cal_rep_matrix(spectra: np.ndarray,
+                   wavenumbers: np.ndarray,
                    replicate: np.ndarray,
                    do_PCA: bool = False,
                    n_comp: int = 1):
@@ -206,19 +216,19 @@ def cal_rep_matrix(spectra: np.ndarray,
     """
     n_rep = len(replicate)
     n_sample = np.shape(spectra)[0]
-        
+
     assert n_rep == n_sample
-        
+
     rep_mean = []
     rep_uni = np.unique(replicate)
-    
+
     #### replace for loop with map ####
-    rep_mean = list(map(lambda x:np.mean(spectra[replicate==x,:], axis=0), rep_uni))
-#    for j in range(len(rep_uni)):
-#        rep_mean.append(np.mean(spectra[replicate==rep_uni[j],:], axis=0))
-        
+    rep_mean = list(map(lambda x: np.mean(spectra[replicate == x, :], axis=0), rep_uni))
+    #    for j in range(len(rep_uni)):
+    #        rep_mean.append(np.mean(spectra[replicate==rep_uni[j],:], axis=0))
+
     rep_mean = np.stack(rep_mean, axis=0)
-    
+
     if do_PCA:
         n_comp = np.min((n_rep, n_comp))
         model_pca = PCA(n_comp)
@@ -228,8 +238,9 @@ def cal_rep_matrix(spectra: np.ndarray,
     else:
         return rep_mean
 
-def cal_merit_lda(spectra: np.ndarray, 
-                  wavenumbers: np.ndarray, 
+
+def cal_merit_lda(spectra: np.ndarray,
+                  wavenumbers: np.ndarray,
                   replicate: np.ndarray,
                   label: np.ndarray):
     """
@@ -240,9 +251,9 @@ def cal_merit_lda(spectra: np.ndarray,
     :param label: ndarray of shape [n_samples] 
     :return: mean sensitivity of leave-one-replicate-out cross-validation
     """
-    
+
     logo = LeaveOneGroupOut()
-    
+
     res_true = []
     res_pred = []
     for train, test in logo.split(spectra, label, groups=replicate):
@@ -252,22 +263,23 @@ def cal_merit_lda(spectra: np.ndarray,
         res_true = np.append(res_true, label[test])
 
     c_m = confusion_matrix(res_true, res_pred, labels=np.unique(label))
-    
-    res = np.mean(np.diag(c_m)/np.sum(c_m, axis=1))
-    
+
+    res = np.mean(np.diag(c_m) / np.sum(c_m, axis=1))
+
     return res
 
-def rep_emsc_opt(spectra: np.ndarray, 
-                 wavenumbers: np.ndarray, 
+
+def rep_emsc_opt(spectra: np.ndarray,
+                 wavenumbers: np.ndarray,
                  replicate: np.ndarray,
                  label: np.ndarray,
-                 poly_order: Optional[int]=2,
-                 reference: np.ndarray = None, 
-                 n_comp_all: np.ndarray = (1,2,3),
-                 use_reference: bool=True,
+                 poly_order: Optional[int] = 2,
+                 reference: np.ndarray = None,
+                 n_comp_all: np.ndarray = (1, 2, 3),
+                 use_reference: bool = True,
                  return_coefs: bool = False,
-                 fun_merit = cal_merit_lda,
-                 do_correction: bool=True):
+                 fun_merit=cal_merit_lda,
+                 do_correction: bool = True):
     """
     Preprocess all spectra with replicate EMSC, wit automatically optimization of n_comp 
     :param spectra: ndarray of shape [n_samples, n_channels]
@@ -294,36 +306,36 @@ def rep_emsc_opt(spectra: np.ndarray,
     """
 
     uni_rep = np.unique(replicate)
-    
+
     merits = []
     for n_comp in n_comp_all:
-        
+
         if n_comp >= len(uni_rep): break
-    
-        prep_spectra = rep_emsc(spectra=spectra, 
-                                wavenumbers=wavenumbers, 
+
+        prep_spectra = rep_emsc(spectra=spectra,
+                                wavenumbers=wavenumbers,
                                 replicate=replicate,
                                 poly_order=poly_order,
-                                reference=reference, 
+                                reference=reference,
                                 n_comp=n_comp,
                                 use_reference=use_reference,
                                 return_coefs=False)
-        
+
         met = fun_merit(spectra=prep_spectra,
                         wavenumbers=wavenumbers,
                         replicate=replicate,
                         label=label)
-        
+
         merits.append(met)
-    
+
     opt_comp = n_comp_all[np.argmax(merits)]
 
     if do_correction:
-        res = rep_emsc(spectra=spectra, 
-                       wavenumbers=wavenumbers, 
+        res = rep_emsc(spectra=spectra,
+                       wavenumbers=wavenumbers,
                        replicate=replicate,
                        poly_order=poly_order,
-                       reference=reference, 
+                       reference=reference,
                        n_comp=opt_comp,
                        use_reference=use_reference,
                        return_coefs=return_coefs)
@@ -332,12 +344,11 @@ def rep_emsc_opt(spectra: np.ndarray,
         return merits, opt_comp
 
 
-
-#---------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
 # The following Part Is Based On Norway Biospectools 
-#---------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
 
- 
+
 import numpy as np
 
 
@@ -430,8 +441,9 @@ class TolStopCriterion(BaseStopCriterion):
         no_update_iters = self.cur_iter - self.best_iter
         return no_update_iters > self.patience
 
-#---------------------------------------------------------------------------------------
- 
+
+# ---------------------------------------------------------------------------------------
+
 import logging
 from typing import Union as U, Tuple as T, Optional as O
 
@@ -747,7 +759,8 @@ def _normalize_wavenumbers(wns: np.ndarray):
     half_rng = np.abs(wns[0] - wns[-1]) / 2
     return (wns - np.mean(wns)) / half_rng
 
-#-----------------------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------------
 from typing import Optional, List, Union as U, Tuple as T
 import copy
 
@@ -757,9 +770,10 @@ from scipy.signal import hilbert
 from scipy.interpolate import interp1d
 import numexpr as ne
 
-#from biospectools.preprocessing import EMSC
-#from biospectools.preprocessing.emsc import EMSCInternals
-#from biospectools.preprocessing.criterions import \
+
+# from biospectools.preprocessing import EMSC
+# from biospectools.preprocessing.emsc import EMSCInternals
+# from biospectools.preprocessing.criterions import \
 #    BaseStopCriterion, TolStopCriterion, EmptyCriterionError
 
 
@@ -932,7 +946,7 @@ class MatlabMieCurvesGenerator:
         return qexts
 
     def _calculate_qext_curves(self, nprs, nkks, wavenumbers):
-        rho = self.alpha0s * (1 + self.gammas*nkks) * wavenumbers
+        rho = self.alpha0s * (1 + self.gammas * nkks) * wavenumbers
         tanbeta = nprs / (1 / self.gammas + nkks)
         beta = np.arctan(tanbeta)
         qexts = ne.evaluate(
@@ -994,7 +1008,7 @@ class MatlabMieCurvesDecomposer:
         return n_comp
 
 
-#----------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------
 def savitzky_golay_filter(y, window_size, order, deriv=0, rate=1):
     """
     Based on this : https://scipy.github.io/old-wiki/pages/Cookbook/SavitzkyGolay
@@ -1045,52 +1059,51 @@ def savitzky_golay_filter(y, window_size, order, deriv=0, rate=1):
     import numpy as np
     from math import factorial
 
-    
     # TODO:
-    #import jax 
-    #import jax.numpy as jnp
+    # import jax
+    # import jax.numpy as jnp
     try:
         window_size = np.abs(np.int(window_size))
         order = np.abs(np.int(order))
 
     except ValueError:
         raise ValueError("window_size and order have to be of type int")
-    
+
     if window_size % 2 != 1 or window_size < 1:
         raise TypeError("window_size size must be a positive odd number")
-    
+
     if window_size < order + 2:
         raise TypeError("window_size is too small for the polynomials order")
-    
-    order_range = range(order+1)
-    
-    half_window = (window_size -1) // 2
-    
+
+    order_range = range(order + 1)
+
+    half_window = (window_size - 1) // 2
+
     # precompute coefficients
-    
-    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
-    m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
-    
+
+    b = np.mat([[k ** i for i in order_range] for k in range(-half_window, half_window + 1)])
+    m = np.linalg.pinv(b).A[deriv] * rate ** deriv * factorial(deriv)
+
     # pad the signal at the extremes with
     # values taken from the signal itself
-    
-    firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
-    
-    lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
-    
+
+    firstvals = y[0] - np.abs(y[1:half_window + 1][::-1] - y[0])
+
+    lastvals = y[-1] + np.abs(y[-half_window - 1:-1][::-1] - y[-1])
+
     y = np.concatenate((firstvals, y, lastvals))
-    
-    return np.convolve( m[::-1], y, mode='valid')
+
+    return np.convolve(m[::-1], y, mode='valid')
+
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1, array=True):
-#def savitzky_golay(y, window_size, order, deriv=0, rate=1):
+    # def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     """
     
 
     """
 
-
-    if array==True:
+    if array == True:
         return np.array([savitzky_golay_filter(xi, window_size, order, deriv=0, rate=1) for xi in y])
     else:
         return savitzky_golay_filter(y, window_size, order, deriv=0, rate=1)
