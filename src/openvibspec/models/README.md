@@ -1,0 +1,1 @@
+Models have moved to the wiki: https://github.com/RUB-Bioinf/OpenVibSpec/wiki/Download-Pretrained-Models

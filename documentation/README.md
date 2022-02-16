@@ -1,0 +1,1 @@
+Find more information and example data in the wiki: https://github.com/RUB-Bioinf/OpenVibSpec/wiki
