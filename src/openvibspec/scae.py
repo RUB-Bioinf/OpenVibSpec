@@ -3,31 +3,27 @@ author: Dajana Mueller
 date: January, 2022
 """
 
-import os, random, datetime
+import datetime
+import os
+import random
+import warnings
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-import warnings
 
 warnings.filterwarnings("ignore")
 
-from sklearn.utils import shuffle
 from tensorflow.keras import Model, Input
 from tensorflow.keras.layers import (
     Dense,
     BatchNormalization,
-    Reshape,
-    Flatten,
-    Dropout,
     Activation,
 )
-
 
 # ----------------------- Eager execution -------------
 # tf.config.run_functions_eagerly(False)
 tf.compat.v1.disable_eager_execution()
-
 
 # ------------------------ Seed ------------------------
 seed_value = 0
@@ -115,13 +111,12 @@ class AE(Model):
         h = self._model.get_layer(self._target_layer).output
         dh = h * (1 - h)  # N_batch x N_hidden
         contractive = lam * K.sum(
-            dh**2 * K.sum(W**2, axis=1), axis=1
+            dh ** 2 * K.sum(W ** 2, axis=1), axis=1
         )  # N_batch x N_hidden * N_hidden x 1 = N_batch x 1
         return mse + contractive
 
 
 def save_model(model, out_dir, signature="cae_model"):
-
     model_json = model.to_json()
     json_fp = out_dir + "/" + signature + ".json"
     with open(json_fp, "w") as json_file:
@@ -135,16 +130,16 @@ def save_model(model, out_dir, signature="cae_model"):
 
 
 def train_SCAE(
-    X_train: np.ndarray,
-    X_val: np.ndarray,
-    out_dir: str,
-    hidden_layer: list = [100, 50, 25],
-    num_epochs: int = 200,
-    int_epoch_start: int = 0,
-    batch_size: int = 50,
-    learning_rate: float = 0.003,
-    early_stop_epochs: int = 200,
-    l2_normalize_data: bool = False,
+        X_train: np.ndarray,
+        X_val: np.ndarray,
+        out_dir: str,
+        hidden_layer: list = [100, 50, 25],
+        num_epochs: int = 200,
+        int_epoch_start: int = 0,
+        batch_size: int = 50,
+        learning_rate: float = 0.003,
+        early_stop_epochs: int = 200,
+        l2_normalize_data: bool = False,
 ):
     """
     Main code to set parameters and build + train a stacked
@@ -252,7 +247,7 @@ def train_SCAE(
             val_x = val_x
 
         nb_name = "_" + str(hl)
-        ae = AE(nb_name, hidden_layers[hl : hl + 1], input_x.shape[1])
+        ae = AE(nb_name, hidden_layers[hl: hl + 1], input_x.shape[1])
         autoencoder = ae._model
         encoder = ae._enc
 
@@ -264,13 +259,15 @@ def train_SCAE(
 
         log_dir = out_dir + "/logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         checkpoint_path = (
-            out_dir + "/model_" + str(hl) + "_{epoch:04d}_{val_loss:.8f}.h5"
+                out_dir + "/model_" + str(hl) + "_{epoch:04d}_{val_loss:.8f}.h5"
         )
 
         my_callbacks = [
             tf.keras.callbacks.EarlyStopping(patience=early_stop_epochs),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",factor=0.5,patience=70,verbose=1,mode="auto",min_delta=0.0000001, cooldown=0,min_lr=0)],
-            tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,verbose=1, monitor='val_loss',mode='min',save_best_only=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=70, verbose=1, mode="auto",
+                                                 min_delta=0.0000001, cooldown=0, min_lr=0),
+            tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, verbose=1, monitor='val_loss', mode='min',
+                                               save_best_only=True),
             tf.keras.callbacks.TensorBoard(log_dir=log_dir)
         ]
 
